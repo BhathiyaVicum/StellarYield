@@ -4,7 +4,8 @@ import { isConnected, requestAccess, getAddress } from '@stellar/freighter-api';
 import Dashboard from './components/Dashboard';
 import AIAdvisor from './components/AIAdvisor';
 import Vault from './components/Vault';
-import { Wallet, LayoutDashboard, BrainCircuit, Landmark, Loader2, LogOut } from 'lucide-react';
+import PortfolioPage from './components/portfolio/PortfolioPage';
+import { Wallet, LayoutDashboard, BrainCircuit, Landmark, PieChart, Loader2, LogOut } from 'lucide-react';
 import './index.css';
 
 const truncateKey = (key: string) => `${key.slice(0, 4)}...${key.slice(-4)}`;
@@ -80,6 +81,11 @@ const RootLayout = () => {
           <Link to="/vault" className="hover:text-white transition-colors flex items-center gap-2">
             <Landmark size={18} /> Vaults
           </Link>
+          {walletAddress && (
+            <Link to="/portfolio" className="hover:text-white transition-colors flex items-center gap-2">
+              <PieChart size={18} /> Portfolio
+            </Link>
+          )}
         </div>
 
         <div>
@@ -112,7 +118,7 @@ const RootLayout = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <Outlet />
+        <Outlet context={{ walletAddress }} />
       </main>
     </div>
   );
@@ -135,6 +141,10 @@ const router = createBrowserRouter([
       {
         path: '/vault',
         element: <Vault />,
+      },
+      {
+        path: '/portfolio',
+        element: <PortfolioPage />,
       },
     ],
   },
