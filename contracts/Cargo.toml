@@ -1,6 +1,8 @@
-[package]
-name = "contracts"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "2"
+members = ["yield_vault"]
 
-[dependencies]
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+lto = true
