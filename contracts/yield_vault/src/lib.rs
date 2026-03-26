@@ -7,7 +7,8 @@
 //! function for moving funds across liquidity pools.
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env,
+    contract, contracterror, contractimpl, contracttype, symbol_short, token, vec, Address, Env,
+    IntoVal, Symbol, Val,
 };
 
 // ── Storage keys ────────────────────────────────────────────────────────
@@ -20,6 +21,12 @@ enum DataKey {
     TotalAssets,
     Shares(Address),
     Initialized,
+    // Strategy keys
+    RewardProtocol,
+    RewardToken,
+    DexRouter,
+    TotalHarvested,
+    Keeper,
 }
 
 // ── Errors ──────────────────────────────────────────────────────────────
@@ -281,11 +288,106 @@ impl YieldVault {
         Ok(env.storage().instance().get(&DataKey::Token).unwrap())
     }
 
+    // ── Strategy: Harvest & Auto-Compound ───────────────────────────
+
+    /// Configure the strategy parameters. Admin-only.
+    pub fn configure_strategy(
+        env: Env,
+        admin: Address,
+        reward_protocol: Address,
+        reward_token: Address,
+        dex_router: Address,
+        keeper: Address,
+    ) -> Result<(), VaultError> {
+        Self::require_init(&env)?;
+        Self::require_admin(&env, &admin)?;
+        env.storage().instance().set(&DataKey::RewardProtocol, &reward_protocol);
+        env.storage().instance().set(&DataKey::RewardToken, &reward_token);
+        env.storage().instance().set(&DataKey::DexRouter, &dex_router);
+        env.storage().instance().set(&DataKey::Keeper, &keeper);
+        if !env.storage().instance().has(&DataKey::TotalHarvested) {
+            env.storage().instance().set(&DataKey::TotalHarvested, &0i128);
+        }
+        env.events().publish(
+            (symbol_short!("strat_cfg"),),
+            (reward_protocol, reward_token, dex_router, keeper),
+        );
+        Ok(())
+    }
+
+    /// Harvest rewards, swap for base asset, and auto-compound.
+    /// Callable by admin or keeper. No new shares minted.
+    pub fn harvest(env: Env, caller: Address, min_amount_out: i128) -> Result<i128, VaultError> {
+        Self::require_init(&env)?;
+        caller.require_auth();
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        let keeper: Option<Address> = env.storage().instance().get(&DataKey::Keeper);
+        if caller != admin {
+            match &keeper {
+                Some(k) if k == &caller => {}
+                _ => return Err(VaultError::Unauthorized),
+            }
+        }
+        let base_token: Address = env.storage().instance().get(&DataKey::Token).unwrap();
+        let reward_token: Address = env.storage().instance().get(&DataKey::RewardToken).ok_or(VaultError::NotInitialized)?;
+        let reward_protocol: Address = env.storage().instance().get(&DataKey::RewardProtocol).ok_or(VaultError::NotInitialized)?;
+        let dex_router: Address = env.storage().instance().get(&DataKey::DexRouter).ok_or(VaultError::NotInitialized)?;
+
+        // Step 1: Claim rewards from underlying protocol
+        let vault_addr = env.current_contract_address();
+        let claim_args: soroban_sdk::Vec<Val> = vec![&env, vault_addr.clone().into_val(&env)];
+        env.invoke_contract::<()>(&reward_protocol, &Symbol::new(&env, "claim_rewards"), claim_args);
+
+        // Step 2: Check reward balance
+        let reward_client = token::Client::new(&env, &reward_token);
+        let reward_balance = reward_client.balance(&vault_addr);
+        if reward_balance <= 0 {
+            return Ok(0);
+        }
+
+        // Step 3: Swap rewards for base asset via DEX router
+        let swap_args: soroban_sdk::Vec<Val> = vec![
+            &env,
+            reward_token.into_val(&env),
+            base_token.into_val(&env),
+            reward_balance.into_val(&env),
+            min_amount_out.into_val(&env),
+        ];
+        let amount_out: i128 = env.invoke_contract(&dex_router, &Symbol::new(&env, "swap"), swap_args);
+
+        // Step 4: Auto-compound (increase TVL, no new shares)
+        let total_assets: i128 = env.storage().instance().get(&DataKey::TotalAssets).unwrap();
+        env.storage().instance().set(&DataKey::TotalAssets, &(total_assets + amount_out));
+        let total_harvested: i128 = env.storage().instance().get(&DataKey::TotalHarvested).unwrap_or(0);
+        env.storage().instance().set(&DataKey::TotalHarvested, &(total_harvested + amount_out));
+
+        env.events().publish((symbol_short!("harvest"),), (caller, reward_balance, amount_out));
+        Ok(amount_out)
+    }
+
+    /// Return total harvested amount.
+    pub fn total_harvested(env: Env) -> i128 {
+        env.storage().instance().get(&DataKey::TotalHarvested).unwrap_or(0)
+    }
+
     // ── Internal ────────────────────────────────────────────────────
 
     fn require_init(env: &Env) -> Result<(), VaultError> {
         if !env.storage().instance().has(&DataKey::Initialized) {
             return Err(VaultError::NotInitialized);
+        }
+        Ok(())
+    }
+
+    fn require_admin(env: &Env, caller: &Address) -> Result<(), VaultError> {
+        caller.require_auth();
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(VaultError::NotInitialized)?;
+        if *caller != admin {
+            return Err(VaultError::Unauthorized);
         }
         Ok(())
     }
