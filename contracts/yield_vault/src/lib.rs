@@ -323,12 +323,20 @@ impl YieldVault {
     ) -> Result<(), VaultError> {
         Self::require_init(&env)?;
         Self::require_admin(&env, &admin)?;
-        env.storage().instance().set(&DataKey::RewardProtocol, &reward_protocol);
-        env.storage().instance().set(&DataKey::RewardToken, &reward_token);
-        env.storage().instance().set(&DataKey::DexRouter, &dex_router);
+        env.storage()
+            .instance()
+            .set(&DataKey::RewardProtocol, &reward_protocol);
+        env.storage()
+            .instance()
+            .set(&DataKey::RewardToken, &reward_token);
+        env.storage()
+            .instance()
+            .set(&DataKey::DexRouter, &dex_router);
         env.storage().instance().set(&DataKey::Keeper, &keeper);
         if !env.storage().instance().has(&DataKey::TotalHarvested) {
-            env.storage().instance().set(&DataKey::TotalHarvested, &0i128);
+            env.storage()
+                .instance()
+                .set(&DataKey::TotalHarvested, &0i128);
         }
         env.events().publish(
             (symbol_short!("strat_cfg"),),
@@ -351,14 +359,30 @@ impl YieldVault {
             }
         }
         let base_token: Address = env.storage().instance().get(&DataKey::Token).unwrap();
-        let reward_token: Address = env.storage().instance().get(&DataKey::RewardToken).ok_or(VaultError::NotInitialized)?;
-        let reward_protocol: Address = env.storage().instance().get(&DataKey::RewardProtocol).ok_or(VaultError::NotInitialized)?;
-        let dex_router: Address = env.storage().instance().get(&DataKey::DexRouter).ok_or(VaultError::NotInitialized)?;
+        let reward_token: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::RewardToken)
+            .ok_or(VaultError::NotInitialized)?;
+        let reward_protocol: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::RewardProtocol)
+            .ok_or(VaultError::NotInitialized)?;
+        let dex_router: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::DexRouter)
+            .ok_or(VaultError::NotInitialized)?;
 
         // Step 1: Claim rewards from underlying protocol
         let vault_addr = env.current_contract_address();
         let claim_args: soroban_sdk::Vec<Val> = vec![&env, vault_addr.clone().into_val(&env)];
-        env.invoke_contract::<()>(&reward_protocol, &Symbol::new(&env, "claim_rewards"), claim_args);
+        env.invoke_contract::<()>(
+            &reward_protocol,
+            &Symbol::new(&env, "claim_rewards"),
+            claim_args,
+        );
 
         // Step 2: Check reward balance
         let reward_client = token::Client::new(&env, &reward_token);
@@ -375,21 +399,36 @@ impl YieldVault {
             reward_balance.into_val(&env),
             min_amount_out.into_val(&env),
         ];
-        let amount_out: i128 = env.invoke_contract(&dex_router, &Symbol::new(&env, "swap"), swap_args);
+        let amount_out: i128 =
+            env.invoke_contract(&dex_router, &Symbol::new(&env, "swap"), swap_args);
 
         // Step 4: Auto-compound (increase TVL, no new shares)
         let total_assets: i128 = env.storage().instance().get(&DataKey::TotalAssets).unwrap();
-        env.storage().instance().set(&DataKey::TotalAssets, &(total_assets + amount_out));
-        let total_harvested: i128 = env.storage().instance().get(&DataKey::TotalHarvested).unwrap_or(0);
-        env.storage().instance().set(&DataKey::TotalHarvested, &(total_harvested + amount_out));
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalAssets, &(total_assets + amount_out));
+        let total_harvested: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::TotalHarvested)
+            .unwrap_or(0);
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalHarvested, &(total_harvested + amount_out));
 
-        env.events().publish((symbol_short!("harvest"),), (caller, reward_balance, amount_out));
+        env.events().publish(
+            (symbol_short!("harvest"),),
+            (caller, reward_balance, amount_out),
+        );
         Ok(amount_out)
     }
 
     /// Return total harvested amount.
     pub fn total_harvested(env: Env) -> i128 {
-        env.storage().instance().get(&DataKey::TotalHarvested).unwrap_or(0)
+        env.storage()
+            .instance()
+            .get(&DataKey::TotalHarvested)
+            .unwrap_or(0)
     }
 
     // ── Internal ────────────────────────────────────────────────────

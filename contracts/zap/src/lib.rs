@@ -48,13 +48,13 @@ impl Zap {
         }
 
         env.storage().instance().set(&DataKey::Admin, &admin);
-        env.storage().instance().set(&DataKey::DexRouter, &dex_router);
+        env.storage()
+            .instance()
+            .set(&DataKey::DexRouter, &dex_router);
         env.storage().instance().set(&DataKey::Initialized, &true);
 
-        env.events().publish(
-            (symbol_short!("zap_init"),),
-            (admin, dex_router),
-        );
+        env.events()
+            .publish((symbol_short!("zap_init"),), (admin, dex_router));
 
         Ok(())
     }
@@ -110,8 +110,7 @@ impl Zap {
                 amount_in.into_val(&env),
                 min_amount_out.into_val(&env),
             ];
-            let amount_out: i128 =
-                env.invoke_contract(&dex_router, &swap_fn, swap_args);
+            let amount_out: i128 = env.invoke_contract(&dex_router, &swap_fn, swap_args);
 
             if amount_out < min_amount_out {
                 return Err(ZapError::SlippageExceeded);
@@ -126,11 +125,8 @@ impl Zap {
 
         // Step 4: Deposit into YieldVault
         let deposit_fn = Symbol::new(&env, "deposit");
-        let deposit_args: soroban_sdk::Vec<Val> = vec![
-            &env,
-            zap_addr.into_val(&env),
-            deposit_amount.into_val(&env),
-        ];
+        let deposit_args: soroban_sdk::Vec<Val> =
+            vec![&env, zap_addr.into_val(&env), deposit_amount.into_val(&env)];
         let shares: i128 = env.invoke_contract(&vault, &deposit_fn, deposit_args);
 
         env.events().publish(
@@ -151,7 +147,9 @@ impl Zap {
             return Err(ZapError::Unauthorized);
         }
 
-        env.storage().instance().set(&DataKey::DexRouter, &new_router);
+        env.storage()
+            .instance()
+            .set(&DataKey::DexRouter, &new_router);
         Ok(())
     }
 
