@@ -9,6 +9,7 @@ import ApyDashboard from "./components/dashboard/ApyDashboard";
 import AIAdvisor from "./components/AIAdvisor";
 import Vault from "./components/Vault";
 import PortfolioPage from "./components/portfolio/PortfolioPage";
+import GovernanceDashboard from "./pages/governance/GovernanceDashboard";
 import ConnectWalletButton from "./components/wallet/ConnectWalletButton";
 import { useWallet } from "./context/useWallet";
 import {
@@ -17,6 +18,7 @@ import {
   BrainCircuit,
   Landmark,
   PieChart,
+  ShieldCheck,
 } from "lucide-react";
 import "./index.css";
 
@@ -70,6 +72,14 @@ const RootLayout = () => {
               <PieChart size={18} /> Portfolio
             </Link>
           )}
+          {isConnected && (
+            <Link
+              to="/governance"
+              className="hover:text-white transition-colors flex items-center gap-2"
+            >
+              <ShieldCheck size={18} /> Governance
+            </Link>
+          )}
         </div>
 
         <ConnectWalletButton />
@@ -108,6 +118,10 @@ const router = createBrowserRouter([
       {
         path: "/portfolio",
         element: <PortfolioPage />,
+      },
+      {
+        path: "/governance",
+        element: <GovernanceDashboard />,
       },
     ],
   },
