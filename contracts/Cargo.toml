@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["yield_vault", "zap"]
+members = ["yield_vault", "zap", "clmm_core"]
 
 [profile.release]
 opt-level = "z"

@@ -7,8 +7,8 @@
 //! function for moving funds across liquidity pools.
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, token, vec, Address, Env,
-    IntoVal, Symbol, Val,
+    contract, contracterror, contractimpl, contracttype, symbol_short, token, vec, Address, Bytes,
+    Env, IntoVal, Symbol, Val,
 };
 
 // ── Storage keys ────────────────────────────────────────────────────────
@@ -35,6 +35,7 @@ enum DataKey {
 
 mod admin;
 mod fees;
+mod flashloan;
 mod keeper;
 mod oracle;
 
@@ -450,6 +451,38 @@ impl YieldVault {
             .instance()
             .get(&DataKey::TotalHarvested)
             .unwrap_or(0)
+    }
+
+    // ── Flash Loans ─────────────────────────────────────────────────
+
+    /// Execute a flash loan.
+    ///
+    /// # Arguments
+    /// * `initiator` — Address initiating the flash loan (must authorize)
+    /// * `receiver` — Contract address that will receive and repay the loan
+    /// * `amount` — Amount to borrow
+    /// * `params` — Arbitrary data to pass to receiver
+    ///
+    /// # Returns
+    /// The premium fee collected
+    pub fn flash_loan(
+        env: Env,
+        initiator: Address,
+        receiver: Address,
+        amount: i128,
+        params: Bytes,
+    ) -> Result<i128, VaultError> {
+        Self::flash_loan_impl(&env, &initiator, &receiver, amount, &params)
+    }
+
+    /// View function: calculate flash loan fee for a given amount.
+    pub fn get_flash_loan_fee(_env: Env, amount: i128) -> i128 {
+        Self::calc_flash_fee(amount)
+    }
+
+    /// View function: get maximum available flash loan amount.
+    pub fn get_max_flash_loan(env: Env) -> Result<i128, VaultError> {
+        Self::max_flash_amount(&env)
     }
 
     // ── Internal ────────────────────────────────────────────────────
