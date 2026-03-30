@@ -83,6 +83,7 @@ impl Zap {
     /// * `vault` — Yield vault contract address.
     /// * `amount_in` — Amount of `input_token` to use.
     /// * `min_amount_out` — Minimum `vault_token` amount after swap (0 if `input_token == vault_token`).
+    /// * `min_shares_out` — Minimum acceptable vault shares after deposit.
     ///
     /// # Returns
     ///
@@ -100,6 +101,7 @@ impl Zap {
         vault: Address,
         amount_in: i128,
         min_amount_out: i128,
+        min_shares_out: i128,
     ) -> Result<i128, ZapError> {
         Self::require_init(&env)?;
         user.require_auth();
@@ -147,6 +149,7 @@ impl Zap {
             zap_addr.into_val(&env),
             user.clone().into_val(&env),
             deposit_amount.into_val(&env),
+            min_shares_out.into_val(&env),
         ];
         let shares: i128 = env.invoke_contract(&vault, &deposit_fn, deposit_args);
 

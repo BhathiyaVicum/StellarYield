@@ -1,14 +1,20 @@
 import cors from "cors";
 import express, { Request, Response } from "express";
 import rateLimit from "express-rate-limit";
+import { createYoga } from "graphql-yoga";
 import { predictApy, HistoricalDataPoint } from "./analytics/apyPredictor";
 import { signFeeBump } from "./relayer/relayer";
+import { context } from "./graphql/context";
+import { graphqlSchema } from "./graphql/schema";
 import yieldsRouter from "./routes/yields";
 import leaderboardRouter from "./routes/leaderboard";
 import notificationsRouter from "./routes/notifications";
 import healthRouter from "./routes/health";
 import onrampRouter from "./routes/onramp";
 import zapRouter from "./routes/zap";
+import pnlRouter from "./routes/pnl";
+import exportRouter from "./routes/export";
+import feesRouter from "./routes/fees";
 import {
   createAuthChallenge,
   verifyAuthChallenge,
@@ -43,9 +49,16 @@ async function loadPrismaClient(): Promise<EventsPrismaClient | null> {
 
 export function createApp() {
   const app = express();
+  const yoga = createYoga({
+    schema: graphqlSchema,
+    context: () => context,
+    graphqlEndpoint: "/api/graphql",
+    graphiql: true,
+  });
 
   app.use(cors());
   app.use(express.json());
+  app.use(yoga.graphqlEndpoint, yoga);
 
   const relayerLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -58,8 +71,11 @@ export function createApp() {
   app.use("/api/leaderboard", leaderboardRouter);
   app.use("/api/notifications", notificationsRouter);
   app.use("/api/health", healthRouter);
+  app.use("/api/fees", feesRouter);
   app.use("/api/onramp", onrampRouter);
   app.use("/api/zap", zapRouter);
+  app.use("/api/users", pnlRouter);
+  app.use("/api/users", exportRouter);
 
   app.get("/api/events", async (req: Request, res: Response) => {
     void req;

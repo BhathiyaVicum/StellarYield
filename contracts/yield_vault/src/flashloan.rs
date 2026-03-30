@@ -216,7 +216,7 @@ mod tests {
         // Setup: deposit funds into vault
         let depositor = Address::generate(&env);
         mint_tokens(&env, &token_addr, &depositor, 10_000);
-        vault_client.deposit(&depositor, &10_000);
+        vault_client.deposit(&depositor, &10_000, &10_000);
 
         // Register mock receiver and configure it with vault address
         let receiver_id = env.register(MockFlashReceiver, ());
@@ -266,7 +266,7 @@ mod tests {
 
         let depositor = Address::generate(&env);
         mint_tokens(&env, &token_addr, &depositor, 50_000);
-        vault_client.deposit(&depositor, &50_000);
+        vault_client.deposit(&depositor, &50_000, &50_000);
 
         let max_loan = vault_client.get_max_flash_loan();
         assert_eq!(max_loan, 50_000);
