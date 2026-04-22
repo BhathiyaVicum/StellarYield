@@ -6,7 +6,11 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      include: ["src/features/zap/**/*.ts"],
+      include: [
+        "src/features/zap/**/*.ts",
+        "src/utils/errorDecoder.ts",
+        "src/pages/vesting/vestingService.ts",
+      ],
       exclude: [
         "src/**/*.test.ts",
         "src/features/zap/types.ts",
