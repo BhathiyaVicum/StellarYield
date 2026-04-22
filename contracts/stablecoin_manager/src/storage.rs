@@ -6,11 +6,11 @@ pub enum DataKey {
     Admin,
     SUSDToken,
     CollateralToken, // The vault shares (SAC)
-    VaultMetrics,   // The contract with total_assets/shares
+    VaultMetrics,    // The contract with total_assets/shares
     Oracle,
     CDP(Address),
-    ICR, // Initial Collateralization Ratio (bps)
-    MCR, // Maintenance Collateralization Ratio (bps)
+    ICR,          // Initial Collateralization Ratio (bps)
+    MCR,          // Maintenance Collateralization Ratio (bps)
     InterestRate, // Per second (scaled by 1e18)
     CumulativeIndex,
     LastUpdate,

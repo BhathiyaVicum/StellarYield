@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Address, Symbol, Vec, Val};
+use soroban_sdk::{contracttype, Address, Symbol, Val, Vec};
 
 #[contracttype]
 #[derive(Clone)]

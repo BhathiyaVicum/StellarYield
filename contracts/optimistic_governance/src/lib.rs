@@ -1,7 +1,7 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, symbol_short, Address, Env, Symbol, Vec, Val,
+    contract, contracterror, contractimpl, symbol_short, Address, Env, Symbol, Val, Vec,
 };
 
 mod storage;
@@ -29,7 +29,7 @@ pub enum Error {
 // Interface for ve_tokenomics (veYIELD)
 mod ve_yield {
     use soroban_sdk::{contractclient, Address, Env};
-    
+
     #[contractclient(name = "VeYieldClient")]
     pub trait VeYieldInterface {
         fn get_voting_power(env: Env, user: Address) -> i128;
@@ -53,8 +53,12 @@ impl OptimisticGovernance {
         }
 
         env.storage().instance().set(&DataKey::Admin, &admin);
-        env.storage().instance().set(&DataKey::VeYieldToken, &ve_yield_token);
-        env.storage().instance().set(&DataKey::ChallengeWindow, &challenge_window);
+        env.storage()
+            .instance()
+            .set(&DataKey::VeYieldToken, &ve_yield_token);
+        env.storage()
+            .instance()
+            .set(&DataKey::ChallengeWindow, &challenge_window);
         env.storage().instance().set(&DataKey::ProposalCount, &0u64);
         env.storage().instance().set(&DataKey::IsInitialized, &true);
 
@@ -78,10 +82,18 @@ impl OptimisticGovernance {
             return Err(Error::Unauthorized);
         }
 
-        let count: u64 = env.storage().instance().get(&DataKey::ProposalCount).unwrap_or(0);
+        let count: u64 = env
+            .storage()
+            .instance()
+            .get(&DataKey::ProposalCount)
+            .unwrap_or(0);
         let proposal_id = count + 1;
 
-        let challenge_window: u64 = env.storage().instance().get(&DataKey::ChallengeWindow).unwrap();
+        let challenge_window: u64 = env
+            .storage()
+            .instance()
+            .get(&DataKey::ChallengeWindow)
+            .unwrap();
         let execution_time = env.ledger().timestamp() + challenge_window;
 
         let proposal = Proposal {
@@ -94,8 +106,12 @@ impl OptimisticGovernance {
             status: ProposalStatus::Pending,
         };
 
-        env.storage().persistent().set(&DataKey::Proposal(proposal_id), &proposal);
-        env.storage().instance().set(&DataKey::ProposalCount, &proposal_id);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Proposal(proposal_id), &proposal);
+        env.storage()
+            .instance()
+            .set(&DataKey::ProposalCount, &proposal_id);
 
         env.events().publish(
             (symbol_short!("propose"), proposer),
@@ -127,7 +143,11 @@ impl OptimisticGovernance {
         }
 
         // Check veYIELD voting power
-        let ve_yield_token: Address = env.storage().instance().get(&DataKey::VeYieldToken).unwrap();
+        let ve_yield_token: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::VeYieldToken)
+            .unwrap();
         let client = ve_yield::VeYieldClient::new(&env, &ve_yield_token);
         let voting_power = client.get_voting_power(&disputer);
 
@@ -136,12 +156,12 @@ impl OptimisticGovernance {
         }
 
         proposal.status = ProposalStatus::Disputed;
-        env.storage().persistent().set(&DataKey::Proposal(proposal_id), &proposal);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Proposal(proposal_id), &proposal);
 
-        env.events().publish(
-            (symbol_short!("dispute"), disputer),
-            (proposal_id,),
-        );
+        env.events()
+            .publish((symbol_short!("dispute"), disputer), (proposal_id,));
 
         Ok(())
     }
@@ -170,10 +190,16 @@ impl OptimisticGovernance {
         }
 
         // Execute the payload
-        let result: Val = env.invoke_contract(&proposal.contract_id, &proposal.function, proposal.args.clone());
+        let result: Val = env.invoke_contract(
+            &proposal.contract_id,
+            &proposal.function,
+            proposal.args.clone(),
+        );
 
         proposal.status = ProposalStatus::Executed;
-        env.storage().persistent().set(&DataKey::Proposal(proposal_id), &proposal);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Proposal(proposal_id), &proposal);
 
         env.events().publish(
             (symbol_short!("execute"), proposal_id),
@@ -186,11 +212,16 @@ impl OptimisticGovernance {
     // ── Getters ───────────────────────────────────────────────────
 
     pub fn get_proposal(env: Env, proposal_id: u64) -> Option<Proposal> {
-        env.storage().persistent().get(&DataKey::Proposal(proposal_id))
+        env.storage()
+            .persistent()
+            .get(&DataKey::Proposal(proposal_id))
     }
 
     pub fn get_proposal_count(env: Env) -> u64 {
-        env.storage().instance().get(&DataKey::ProposalCount).unwrap_or(0)
+        env.storage()
+            .instance()
+            .get(&DataKey::ProposalCount)
+            .unwrap_or(0)
     }
 
     // ── Internal Helpers ──────────────────────────────────────────
