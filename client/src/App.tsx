@@ -19,6 +19,7 @@ import ClaimRewards from "./features/rewards/ClaimRewards";
 import PnLChart from "./features/pnl/PnLChart";
 import TaxExport from "./features/taxes/TaxExport";
 import ReferralDashboard from "./features/referrals/ReferralDashboard";
+import { YieldCalculator } from "./components/calculator";
 import { useWallet } from "./context/useWallet";
 import { useState } from "react";
 import {
@@ -34,6 +35,7 @@ import {
   DollarSign,
   FileSpreadsheet,
   Users,
+  Calculator,
 } from "lucide-react";
 import "./index.css";
 
@@ -94,6 +96,14 @@ const RootLayout = () => {
               className="hover:text-white transition-colors flex items-center gap-2"
             >
               <PieChart size={18} /> Portfolio
+            </Link>
+          )}
+          {isConnected && (
+            <Link
+              to="/calculator"
+              className="hover:text-white transition-colors flex items-center gap-2"
+            >
+              <Calculator size={18} /> Calculator
             </Link>
           )}
           {isConnected && (
@@ -197,6 +207,10 @@ const router = createBrowserRouter([
       {
         path: "/portfolio",
         element: <PortfolioPage />,
+      },
+      {
+        path: "/calculator",
+        element: <YieldCalculator />,
       },
       {
         path: "/governance",
