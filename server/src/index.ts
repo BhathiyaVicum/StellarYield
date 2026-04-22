@@ -1,8 +1,11 @@
 import { createApp } from "./app";
+import { initializeZapSupportedAssetsCache } from "./config/zapAssetsConfig";
 import { startIndexer } from "./indexer/indexer";
 import { startHistoricalYieldAggregationJob } from "./jobs/historicalYieldAggregation";
 import { startSharePriceSnapshotJob } from "./jobs/sharePriceSnapshot";
 import { startHealthMonitor } from "./monitoring/healthMonitor";
+
+initializeZapSupportedAssetsCache();
 
 const app = createApp();
 const PORT = process.env.PORT || 3001;

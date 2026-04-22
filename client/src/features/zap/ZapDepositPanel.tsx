@@ -8,9 +8,13 @@ import { fetchSwapQuote } from "./fetchSwapQuote";
 import { minAmountAfterSlippage } from "./slippage";
 import { parseDecimalToStroops, formatStroopsToDecimal } from "./amount";
 import {
+  buildSelectableZapAssetsFromMetadata,
+  fetchZapSupportedAssetsMetadata,
   getVaultContractIdFromEnv,
   getVaultTokenFromEnv,
   loadZapAssetOptions,
+  mergeVaultIntoZapSelectableAssets,
+  shouldLoadZapMetadataFromApi,
 } from "./assets";
 import type { ZapAssetOption } from "./types";
 
@@ -19,30 +23,42 @@ export interface ZapDepositPanelProps {
 }
 
 export default function ZapDepositPanel({ walletAddress }: ZapDepositPanelProps) {
-  const vaultToken = useMemo(() => getVaultTokenFromEnv(), []);
-  const vaultContractId = useMemo(() => getVaultContractIdFromEnv(), []);
-  const selectableAssets = useMemo(() => {
-    const fromEnv = loadZapAssetOptions();
-    const vault: ZapAssetOption = {
-      symbol: vaultToken.symbol,
-      name: vaultToken.name,
-      contractId: vaultToken.contractId,
-      decimals: vaultToken.decimals,
-    };
-    const merged = [...fromEnv];
-    if (vault.contractId && !merged.some((a) => a.contractId === vault.contractId)) {
-      merged.push(vault);
-    }
-    return merged;
-  }, [vaultToken]);
+  const useApiAssets = shouldLoadZapMetadataFromApi();
 
-  const [inputAsset, setInputAsset] = useState<ZapAssetOption | null>(
-    () => selectableAssets[0] ?? null
+  const initialVault = useMemo(() => getVaultTokenFromEnv(), []);
+  const initialVaultContractId = useMemo(() => getVaultContractIdFromEnv(), []);
+
+  const [vaultToken, setVaultToken] = useState<ZapAssetOption>(initialVault);
+  const [vaultContractId, setVaultContractId] = useState(initialVaultContractId);
+  const [selectableAssets, setSelectableAssets] = useState<ZapAssetOption[]>(() =>
+    mergeVaultIntoZapSelectableAssets(loadZapAssetOptions(), initialVault),
   );
 
   useEffect(() => {
-    if (!inputAsset && selectableAssets[0]) {
-      setInputAsset(selectableAssets[0]);
+    if (!useApiAssets) return;
+    let cancelled = false;
+    void fetchZapSupportedAssetsMetadata().then((meta) => {
+      if (cancelled || !meta) return;
+      setVaultToken(meta.vaultToken);
+      setVaultContractId(meta.vaultContractId);
+      setSelectableAssets(buildSelectableZapAssetsFromMetadata(meta));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [useApiAssets]);
+
+  const [inputAsset, setInputAsset] = useState<ZapAssetOption | null>(
+    () => mergeVaultIntoZapSelectableAssets(loadZapAssetOptions(), initialVault)[0] ?? null,
+  );
+
+  useEffect(() => {
+    if (!selectableAssets.length) return;
+    if (
+      !inputAsset ||
+      !selectableAssets.some((a) => a.contractId === inputAsset.contractId)
+    ) {
+      setInputAsset(selectableAssets[0] ?? null);
     }
   }, [inputAsset, selectableAssets]);
 
