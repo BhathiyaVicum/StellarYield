@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use soroban_sdk::{contractclient, Address, Env};
 
 /// Minimal interface for the AMM router (e.g. Soroswap).

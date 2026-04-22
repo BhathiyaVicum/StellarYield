@@ -85,7 +85,7 @@ class XBullAdapter implements WalletAdapter {
     const wallet = this.getInstance();
     try {
       await wallet.openWallet();
-      const result = (await wallet.connect()) as { publicKey: string };
+      const result = (await wallet.connect()) as unknown as { publicKey: string };
       wallet.closeWallet();
       if (!result?.publicKey) throw new Error("xBull did not return a public key.");
       return result.publicKey;
@@ -98,7 +98,7 @@ class XBullAdapter implements WalletAdapter {
     const wallet = this.getInstance();
     try {
       await wallet.openWallet();
-      const result = (await wallet.sign({ xdr, publicKey: undefined, network: networkPassphrase })) as {
+      const result = (await wallet.sign({ xdr, publicKey: undefined, network: networkPassphrase })) as unknown as {
         signedXDR: string;
       };
       wallet.closeWallet();

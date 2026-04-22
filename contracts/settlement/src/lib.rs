@@ -8,7 +8,7 @@
 
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Bytes, Env,
-    Vec, String,
+    String, Vec,
 };
 
 // ── Storage Keys ────────────────────────────────────────────────────────
@@ -18,11 +18,11 @@ use soroban_sdk::{
 pub enum StorageKey {
     Initialized,
     Admin,
-    MatchingEngine,      // Trusted matching engine address
-    SettledTrades,       // Map<String, bool> - Track settled trade IDs
-    FeeRecipient,        // Address for fee collection
-    FeeBps,              // u32 - Fee in basis points
-    Paused,              // bool - Circuit breaker
+    MatchingEngine, // Trusted matching engine address
+    SettledTrades,  // Map<String, bool> - Track settled trade IDs
+    FeeRecipient,   // Address for fee collection
+    FeeBps,         // u32 - Fee in basis points
+    Paused,         // bool - Circuit breaker
 }
 
 // ── Data Structures ─────────────────────────────────────────────────────
@@ -115,14 +115,20 @@ impl SettlementContract {
         }
 
         env.storage().instance().set(&StorageKey::Admin, &admin);
-        env.storage().instance().set(&StorageKey::FeeRecipient, &fee_recipient);
+        env.storage()
+            .instance()
+            .set(&StorageKey::FeeRecipient, &fee_recipient);
         env.storage().instance().set(&StorageKey::FeeBps, &fee_bps);
 
         if let Some(engine) = matching_engine {
-            env.storage().instance().set(&StorageKey::MatchingEngine, &engine);
+            env.storage()
+                .instance()
+                .set(&StorageKey::MatchingEngine, &engine);
         }
 
-        env.storage().instance().set(&StorageKey::Initialized, &true);
+        env.storage()
+            .instance()
+            .set(&StorageKey::Initialized, &true);
 
         // Emit event
         env.events().publish((symbol_short!("init"),), (admin,));
@@ -176,7 +182,13 @@ impl SettlementContract {
         }
 
         // Verify signatures
-        Self::verify_signatures(&env, &data, &maker_signature, &taker_signature, &engine_signature)?;
+        Self::verify_signatures(
+            &env,
+            &data,
+            &maker_signature,
+            &taker_signature,
+            &engine_signature,
+        )?;
 
         // Validate amounts
         if data.amount0 <= 0 || data.amount1 <= 0 {
@@ -196,7 +208,13 @@ impl SettlementContract {
         // Emit event
         env.events().publish(
             (symbol_short!("settle"),),
-            (data.trade_id, data.maker, data.taker, data.amount0, data.amount1),
+            (
+                data.trade_id,
+                data.maker,
+                data.taker,
+                data.amount0,
+                data.amount1,
+            ),
         );
 
         Ok(())
@@ -243,7 +261,9 @@ impl SettlementContract {
 
         // Process each settlement
         for (i, data) in batch.settlements.iter().enumerate() {
-            let sigs = signatures.get(i as u32).ok_or(SettlementError::InvalidSignature)?;
+            let sigs = signatures
+                .get(i as u32)
+                .ok_or(SettlementError::InvalidSignature)?;
 
             // Check if trade already settled
             if Self::is_trade_settled(env.clone(), data.trade_id.clone()) {
@@ -292,7 +312,9 @@ impl SettlementContract {
         Self::require_initialized(&env)?;
         Self::require_admin(&env, &admin)?;
 
-        env.storage().instance().set(&StorageKey::MatchingEngine, &engine);
+        env.storage()
+            .instance()
+            .set(&StorageKey::MatchingEngine, &engine);
 
         // Emit event
         env.events().publish((symbol_short!("set_eng"),), (engine,));
@@ -317,11 +339,14 @@ impl SettlementContract {
         Self::require_initialized(&env)?;
         Self::require_admin(&env, &admin)?;
 
-        env.storage().instance().set(&StorageKey::FeeRecipient, &fee_recipient);
+        env.storage()
+            .instance()
+            .set(&StorageKey::FeeRecipient, &fee_recipient);
         env.storage().instance().set(&StorageKey::FeeBps, &fee_bps);
 
         // Emit event
-        env.events().publish((symbol_short!("set_fee"),), (fee_recipient, fee_bps));
+        env.events()
+            .publish((symbol_short!("set_fee"),), (fee_recipient, fee_bps));
 
         Ok(())
     }
@@ -409,8 +434,16 @@ impl SettlementContract {
     ///
     /// Returns tuple of (fee_recipient, fee_bps)
     pub fn get_fees(env: Env) -> (Address, u32) {
-        let recipient: Address = env.storage().instance().get(&StorageKey::FeeRecipient).unwrap();
-        let fee_bps: u32 = env.storage().instance().get(&StorageKey::FeeBps).unwrap_or(0);
+        let recipient: Address = env
+            .storage()
+            .instance()
+            .get(&StorageKey::FeeRecipient)
+            .unwrap_or_else(|| env.current_contract_address());
+        let fee_bps: u32 = env
+            .storage()
+            .instance()
+            .get(&StorageKey::FeeBps)
+            .unwrap_or(0);
         (recipient, fee_bps)
     }
 
@@ -424,7 +457,10 @@ impl SettlementContract {
     ///
     /// Returns `true` if paused
     pub fn is_paused(env: Env) -> bool {
-        env.storage().instance().get(&StorageKey::Paused).unwrap_or(false)
+        env.storage()
+            .instance()
+            .get(&StorageKey::Paused)
+            .unwrap_or(false)
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -469,7 +505,7 @@ impl SettlementContract {
         // In production, this would verify ECDSA/Ed25519 signatures
         // For now, we check that signatures are non-empty and the engine is trusted
 
-        if _maker_sig.len() == 0 || _taker_sig.len() == 0 || _engine_sig.len() == 0 {
+        if _maker_sig.is_empty() || _taker_sig.is_empty() || _engine_sig.is_empty() {
             return Err(SettlementError::InvalidSignature);
         }
 
@@ -505,16 +541,33 @@ impl SettlementContract {
     }
 
     fn collect_fees(env: &Env, data: &SettlementData) -> Result<(), SettlementError> {
-        let fee_bps: u32 = env.storage().instance().get(&StorageKey::FeeBps).unwrap_or(0);
+        let fee_bps: u32 = env
+            .storage()
+            .instance()
+            .get(&StorageKey::FeeBps)
+            .unwrap_or(0);
         if fee_bps == 0 {
             return Ok(());
         }
 
-        let fee_recipient: Address = env.storage().instance().get(&StorageKey::FeeRecipient).unwrap();
+        let fee_recipient: Address = env
+            .storage()
+            .instance()
+            .get(&StorageKey::FeeRecipient)
+            .ok_or(SettlementError::NotInitialized)?;
 
         // Calculate fees (simplified - in production would be more sophisticated)
-        let fee0 = (data.amount0 * fee_bps as i128) / 10_000;
-        let fee1 = (data.amount1 * fee_bps as i128) / 10_000;
+        let fee_bps = fee_bps as i128;
+        let fee0 = data
+            .amount0
+            .checked_mul(fee_bps)
+            .and_then(|fee| fee.checked_div(10_000))
+            .ok_or(SettlementError::InvalidAmount)?;
+        let fee1 = data
+            .amount1
+            .checked_mul(fee_bps)
+            .and_then(|fee| fee.checked_div(10_000))
+            .ok_or(SettlementError::InvalidAmount)?;
 
         if fee0 > 0 {
             let client0 = token::Client::new(env, &data.token0);
@@ -537,7 +590,9 @@ impl SettlementContract {
             .unwrap_or(soroban_sdk::Map::new(env));
 
         settled.set(trade_id.clone(), true);
-        env.storage().instance().set(&StorageKey::SettledTrades, &settled);
+        env.storage()
+            .instance()
+            .set(&StorageKey::SettledTrades, &settled);
     }
 }
 
@@ -567,7 +622,7 @@ mod tests {
     #[test]
     fn test_initialize() {
         let env = Env::default();
-        let (client, admin, _) = setup_contract(&env);
+        let (client, _admin, _) = setup_contract(&env);
 
         assert!(!client.is_paused());
         let (_, fee_bps) = client.get_fees();

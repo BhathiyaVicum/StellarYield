@@ -60,7 +60,7 @@ pub struct IsolatedLendingFactory;
 
 #[contractimpl]
 impl IsolatedLendingFactory {
-    pub fn initialize(env: Env, admin: Address) {
+    pub fn initialize_factory(env: Env, admin: Address) {
         if env.storage().instance().has(&FactoryDataKey::Admin) {
             return;
         }

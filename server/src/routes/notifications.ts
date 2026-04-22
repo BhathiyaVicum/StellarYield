@@ -13,7 +13,7 @@ router.get("/:walletAddress", async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
     res.json(notifications);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch notifications." });
   }
 });
@@ -27,7 +27,7 @@ router.patch("/:id/read", async (req: Request, res: Response) => {
       data: { isRead: true },
     });
     res.sendStatus(204);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Failed to mark as read." });
   }
 });
@@ -40,7 +40,7 @@ router.delete("/:walletAddress", async (req: Request, res: Response) => {
       where: { walletAddress },
     });
     res.sendStatus(204);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Failed to clear notifications." });
   }
 });

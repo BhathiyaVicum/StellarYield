@@ -93,7 +93,7 @@ function FlowParticles({
 
   const ref = useRef<THREE.Points>(null);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (!ref.current) return;
     const positions = ref.current.geometry.attributes.position.array as Float32Array;
     for (let i = 0; i < count; i++) {

@@ -34,6 +34,7 @@ pub fn has_admin(e: &Env) -> bool {
     e.storage().instance().has(&DataKey::Admin)
 }
 
+#[allow(dead_code)]
 pub fn read_admin(e: &Env) -> Address {
     e.storage().instance().get(&DataKey::Admin).unwrap()
 }
@@ -42,6 +43,7 @@ pub fn write_admin(e: &Env, id: &Address) {
     e.storage().instance().set(&DataKey::Admin, id);
 }
 
+#[allow(dead_code)]
 pub fn read_oracle(e: &Env) -> Address {
     e.storage().instance().get(&DataKey::Oracle).unwrap()
 }

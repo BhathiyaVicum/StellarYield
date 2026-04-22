@@ -6,12 +6,22 @@ const router = Router();
 const prisma = new PrismaClient();
 const horizon = new Horizon.Server("https://horizon-testnet.stellar.org");
 
+type HealthStatus = {
+  database: "up" | "down";
+  redis: "up";
+  indexer: "up" | "down" | "warning";
+  horizon: "up" | "down";
+  timestamp: string;
+  latestLedger?: number;
+  syncedLedger?: number;
+};
+
 /**
  * @notice Check the health of the system.
  * @dev Checks DB connection, indexer latency, and Stellar Horizon availability.
  */
-router.get("/", async (req: Request, res: Response) => {
-  const status: any = {
+router.get("/", async (_req: Request, res: Response) => {
+  const status: HealthStatus = {
     database: "down",
     redis: "up", // Mocked as up
     indexer: "down",
@@ -22,7 +32,7 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     status.database = "up";
-  } catch (err) {
+  } catch {
     status.database = "down";
   }
 
@@ -40,7 +50,7 @@ router.get("/", async (req: Request, res: Response) => {
     } else {
       status.indexer = "warning";
     }
-  } catch (err) {
+  } catch {
     status.horizon = "down";
   }
 

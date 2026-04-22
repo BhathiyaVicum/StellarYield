@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(clippy::too_many_arguments)]
 
 use soroban_sdk::{contract, contracterror, contractimpl, symbol_short, token, Address, Env};
 
@@ -7,10 +8,10 @@ mod storage;
 #[cfg(test)]
 mod tests;
 
-use math::{black_scholes_call, ONE};
+use math::black_scholes_call;
 use storage::{
-    has_admin, read_admin, read_option, read_option_counter, read_oracle, write_admin,
-    write_option, write_option_counter, write_oracle, OptionData, OptionType,
+    has_admin, read_option, read_option_counter, write_admin, write_option, write_option_counter,
+    write_oracle, OptionData, OptionType,
 };
 
 #[contracterror]

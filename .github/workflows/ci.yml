@@ -101,4 +101,4 @@ jobs:
           cargo kani setup
 
       - name: Run Kani verification
-        run: cd contracts/yield_vault && cargo kani --enable-unstable --set-gimits --harness verification::prove_fee_bounds --harness verification::prove_flash_loan_security --harness verification::prove_deposit_share_calculation
+        run: cd contracts/yield_vault && cargo kani --harness verification::prove_fee_bounds --harness verification::prove_flash_loan_security --harness verification::prove_deposit_share_calculation

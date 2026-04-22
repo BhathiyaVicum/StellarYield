@@ -83,7 +83,7 @@ impl YieldVault {
                 .set(&ReferralKey::ReferredTvl(referrer), &(current_tvl + amount));
         }
 
-        Self::deposit(env, from, amount)
+        Self::deposit(env, from, amount, 0)
     }
 
     pub fn claim_referral_rewards_impl(env: Env, referrer: Address) -> Result<i128, VaultError> {

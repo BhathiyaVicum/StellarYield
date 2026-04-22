@@ -28,7 +28,7 @@ type ExportPrismaClient = {
 
 async function loadPrismaClient(): Promise<ExportPrismaClient | null> {
   try {
-    const prismaModule = (await import("@prisma/client")) as {
+    const prismaModule = (await import("@prisma/client")) as unknown as {
       PrismaClient?: new () => ExportPrismaClient;
     };
     if (!prismaModule.PrismaClient) return null;

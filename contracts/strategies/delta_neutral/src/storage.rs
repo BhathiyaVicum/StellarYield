@@ -50,6 +50,7 @@ pub struct Position {
 
 // ── Storage helpers ──────────────────────────────────────────────────────
 
+#[allow(dead_code)]
 pub fn has_admin(e: &Env) -> bool {
     e.storage().instance().has(&DataKey::Admin)
 }

@@ -35,7 +35,7 @@ type PnLPrismaClient = {
 
 async function loadPrismaClient(): Promise<PnLPrismaClient | null> {
   try {
-    const prismaModule = (await import("@prisma/client")) as {
+    const prismaModule = (await import("@prisma/client")) as unknown as {
       PrismaClient?: new () => PnLPrismaClient;
     };
     if (!prismaModule.PrismaClient) return null;

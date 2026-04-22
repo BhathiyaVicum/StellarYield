@@ -1,4 +1,9 @@
 #![no_std]
+#![allow(
+    clippy::arithmetic_side_effects,
+    clippy::indexing_slicing,
+    clippy::unwrap_used
+)]
 
 //! # Account Abstraction Factory
 //!
@@ -82,10 +87,7 @@
 mod factory;
 mod proxy_wallet;
 
-pub use factory::{
-    DeploymentConfig, FactoryError, ProxyInfo, WalletFactory, WalletFactoryClient,
-};
+pub use factory::{DeploymentConfig, FactoryError, ProxyInfo, WalletFactory, WalletFactoryClient};
 pub use proxy_wallet::{
-    ExecutionResult, ProxyError, ProxyWallet, ProxyWalletClient, UserOperation,
-    WebAuthnSignature,
+    ExecutionResult, ProxyError, ProxyWallet, ProxyWalletClient, UserOperation, WebAuthnSignature,
 };

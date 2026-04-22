@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 // In-process mock Redis cache
 const CACHE_TTL = 300000; // 5 minutes
-let leaderboardCache: any = null;
+let leaderboardCache: unknown = null;
 let lastCacheUpdate = 0;
 
 /**

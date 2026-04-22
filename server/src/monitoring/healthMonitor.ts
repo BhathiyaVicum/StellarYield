@@ -1,7 +1,4 @@
 import axios from "axios";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const HEALTH_ENDPOINT = "http://localhost:3001/api/health";
@@ -23,7 +20,7 @@ export async function startHealthMonitor() {
       if (issues.length > 0) {
         await sendAlert(issues.join("\n"), "HIGH");
       }
-    } catch (error) {
+    } catch {
       await sendAlert("🚨 BACKEND API IS UNREACHABLE!", "CRITICAL");
     }
   }, CHECK_INTERVAL);

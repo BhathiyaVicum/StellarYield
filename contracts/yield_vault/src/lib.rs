@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(clippy::arithmetic_side_effects, clippy::unwrap_used)]
 
 //! # YieldVault — Core Soroban Vault for Automated Rebalancing
 //!
@@ -1296,6 +1297,7 @@ mod tests {
 // ── Fuzz / Invariant Tests ───────────────────────────────────────────────
 
 #[cfg(test)]
+#[allow(clippy::arithmetic_side_effects)]
 mod fuzz_tests {
     extern crate std;
 
