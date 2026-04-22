@@ -8,9 +8,9 @@ pub enum DataKey {
     CollateralToken, // The vault shares (SAC)
     VaultMetrics,    // The contract with total_assets/shares
     Oracle,
-    CDP(Address),
-    ICR,          // Initial Collateralization Ratio (bps)
-    MCR,          // Maintenance Collateralization Ratio (bps)
+    Cdp(Address),
+    Icr,          // Initial Collateralization Ratio (bps)
+    Mcr,          // Maintenance Collateralization Ratio (bps)
     InterestRate, // Per second (scaled by 1e18)
     CumulativeIndex,
     LastUpdate,
@@ -19,7 +19,7 @@ pub enum DataKey {
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CDP {
+pub struct Cdp {
     pub collateral: i128,
     pub debt_shares: i128,
     pub last_index: i128,

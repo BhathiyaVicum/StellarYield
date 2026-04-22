@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(clippy::too_many_arguments)]
 
 use soroban_sdk::{
     contract, contracterror, contractimpl, symbol_short, token, vec, Address, Env, IntoVal, Symbol,
@@ -12,7 +13,7 @@ mod storage;
 mod test;
 
 use math::{calculate_collateral_value, calculate_cr, calculate_debt, calculate_index};
-use storage::{DataKey, CDP, SCALAR_18};
+use storage::{Cdp, DataKey, SCALAR_18};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -23,8 +24,8 @@ pub enum Error {
     Unauthorized = 3,
     ZeroAmount = 4,
     InsufficientCollateral = 5,
-    PositionUnderMCR = 6,
-    NoCDPFound = 7,
+    PositionUnderMcr = 6,
+    NoCdpFound = 7,
     InvalidRatio = 8,
     PriceStale = 9,
 }
@@ -69,8 +70,8 @@ impl StablecoinManager {
             .instance()
             .set(&DataKey::VaultMetrics, &vault_metrics);
         env.storage().instance().set(&DataKey::Oracle, &oracle);
-        env.storage().instance().set(&DataKey::ICR, &icr);
-        env.storage().instance().set(&DataKey::MCR, &mcr);
+        env.storage().instance().set(&DataKey::Icr, &icr);
+        env.storage().instance().set(&DataKey::Mcr, &mcr);
         env.storage()
             .instance()
             .set(&DataKey::InterestRate, &interest_rate);
@@ -105,8 +106,8 @@ impl StablecoinManager {
         let mut cdp = env
             .storage()
             .persistent()
-            .get(&DataKey::CDP(from.clone()))
-            .unwrap_or(CDP {
+            .get(&DataKey::Cdp(from.clone()))
+            .unwrap_or(Cdp {
                 collateral: 0,
                 debt_shares: 0,
                 last_index: SCALAR_18,
@@ -140,7 +141,7 @@ impl StablecoinManager {
         Self::verify_cr(&env, &cdp, true)?;
         env.storage()
             .persistent()
-            .set(&DataKey::CDP(from.clone()), &cdp);
+            .set(&DataKey::Cdp(from.clone()), &cdp);
 
         env.events().publish(
             (symbol_short!("mint"), from),
@@ -165,11 +166,11 @@ impl StablecoinManager {
         from.require_auth();
         Self::accrue_interest(&env)?;
 
-        let mut cdp: CDP = env
+        let mut cdp: Cdp = env
             .storage()
             .persistent()
-            .get(&DataKey::CDP(from.clone()))
-            .ok_or(Error::NoCDPFound)?;
+            .get(&DataKey::Cdp(from.clone()))
+            .ok_or(Error::NoCdpFound)?;
         let index: i128 = env
             .storage()
             .instance()
@@ -210,11 +211,11 @@ impl StablecoinManager {
         if cdp.collateral == 0 && cdp.debt_shares == 0 {
             env.storage()
                 .persistent()
-                .remove(&DataKey::CDP(from.clone()));
+                .remove(&DataKey::Cdp(from.clone()));
         } else {
             env.storage()
                 .persistent()
-                .set(&DataKey::CDP(from.clone()), &cdp);
+                .set(&DataKey::Cdp(from.clone()), &cdp);
         }
         Ok(())
     }
@@ -229,13 +230,13 @@ impl StablecoinManager {
         liquidator.require_auth();
         Self::accrue_interest(&env)?;
 
-        let cdp: CDP = env
+        let cdp: Cdp = env
             .storage()
             .persistent()
-            .get(&DataKey::CDP(user.clone()))
-            .ok_or(Error::NoCDPFound)?;
+            .get(&DataKey::Cdp(user.clone()))
+            .ok_or(Error::NoCdpFound)?;
         let cr = Self::get_user_cr(&env, &cdp)?;
-        let mcr: u32 = env.storage().instance().get(&DataKey::MCR).unwrap();
+        let mcr: u32 = env.storage().instance().get(&DataKey::Mcr).unwrap();
         if cr >= mcr {
             return Err(Error::Unauthorized);
         }
@@ -263,7 +264,7 @@ impl StablecoinManager {
 
         env.storage()
             .persistent()
-            .remove(&DataKey::CDP(user.clone()));
+            .remove(&DataKey::Cdp(user.clone()));
         Ok(())
     }
 
@@ -298,7 +299,7 @@ impl StablecoinManager {
         Ok(())
     }
 
-    fn get_user_cr(env: &Env, cdp: &CDP) -> Result<u32, Error> {
+    fn get_user_cr(env: &Env, cdp: &Cdp) -> Result<u32, Error> {
         if cdp.debt_shares == 0 {
             return Ok(u32::MAX);
         }
@@ -348,15 +349,15 @@ impl StablecoinManager {
         ))
     }
 
-    fn verify_cr(env: &Env, cdp: &CDP, use_icr: bool) -> Result<(), Error> {
+    fn verify_cr(env: &Env, cdp: &Cdp, use_icr: bool) -> Result<(), Error> {
         if cdp.debt_shares == 0 {
             return Ok(());
         }
         let cr = Self::get_user_cr(env, cdp)?;
         let limit: u32 = if use_icr {
-            env.storage().instance().get(&DataKey::ICR).unwrap()
+            env.storage().instance().get(&DataKey::Icr).unwrap()
         } else {
-            env.storage().instance().get(&DataKey::MCR).unwrap()
+            env.storage().instance().get(&DataKey::Mcr).unwrap()
         };
         if cr < limit {
             return Err(Error::InsufficientCollateral);

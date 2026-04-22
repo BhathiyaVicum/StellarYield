@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use super::*;
 use soroban_sdk::{
     testutils::{Address as _, Ledger},
@@ -17,23 +15,33 @@ impl TargetContract {
     }
 }
 
-// Unified Mock VeYield Contract
-#[contract]
-pub struct MockVeYield;
+mod mock_ve_yield {
+    use soroban_sdk::{contract, contractimpl, Address, Env};
+    #[contract]
+    pub struct MockVeYield;
 
-#[contractimpl]
-impl MockVeYield {
-    pub fn get_voting_power(_env: Env, user: Address) -> i128 {
-        // We set a specific address for "no power"
-        // In Soroban tests, we can generate addresses and compare them.
-        // For simplicity, we'll return 0 for a specific user generated in the test.
-        // We'll store the "powerless" user in the environment or just use a dummy logic.
-
-        // Let's use a simple logic: any address that is NOT the admin or a standard generated one.
-        // Better: we use a specific Address for the test_dispute_no_power.
-        100
+    #[contractimpl]
+    impl MockVeYield {
+        pub fn get_voting_power(_env: Env, _user: Address) -> i128 {
+            100
+        }
     }
 }
+use mock_ve_yield::MockVeYield;
+
+mod no_power_ve_yield {
+    use soroban_sdk::{contract, contractimpl, Address, Env};
+    #[contract]
+    pub struct NoPowerVeYield;
+
+    #[contractimpl]
+    impl NoPowerVeYield {
+        pub fn get_voting_power(_env: Env, _user: Address) -> i128 {
+            0
+        }
+    }
+}
+use no_power_ve_yield::NoPowerVeYield;
 
 #[test]
 fn test_governance_lifecycle() {
@@ -117,16 +125,6 @@ fn test_dispute_no_power() {
     env.mock_all_auths();
 
     let admin = Address::generate(&env);
-
-    // Register a specific mock for no power
-    #[contract]
-    pub struct NoPowerVeYield;
-    #[contractimpl]
-    impl NoPowerVeYield {
-        pub fn get_voting_power(_env: Env, _user: Address) -> i128 {
-            0
-        }
-    }
 
     let ve_yield = env.register(NoPowerVeYield, ());
     let gov_id = env.register(OptimisticGovernance, ());
