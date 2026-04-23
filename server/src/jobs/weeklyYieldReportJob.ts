@@ -5,10 +5,7 @@ import {
   getReportStatistics,
   exportReportsToCSV,
 } from "../services/weeklyYieldReportService";
-import {
-  sendWeeklyYieldReportEmail,
-  sendBatchEmails,
-} from "../services/emailService";
+import { sendBatchEmails } from "../services/emailService";
 
 /**
  * Weekly Yield Report Job

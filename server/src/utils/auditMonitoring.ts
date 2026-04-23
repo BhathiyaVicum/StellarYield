@@ -3,7 +3,6 @@ import {
   getAuditLogs,
   verifyAuditTrailIntegrity,
   getAuditStatistics,
-  AuditLogEntry,
 } from "../middleware/audit";
 
 /**
@@ -17,7 +16,7 @@ export interface AuditAlert {
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   type: string;
   message: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }
 
 export interface AuditMonitoringConfig {
@@ -44,7 +43,7 @@ export function createAlert(
   type: string,
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
   message: string,
-  details: Record<string, any> = {},
+  details: Record<string, unknown> = {},
 ): AuditAlert {
   const alert: AuditAlert = {
     id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

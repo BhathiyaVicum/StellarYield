@@ -147,8 +147,8 @@ export async function sendWeeklyYieldReportEmail(
  * Send batch emails
  */
 export async function sendBatchEmails(
-  recipients: Array<{ email: string; data: any }>,
-  emailGenerator: (data: any) => EmailOptions,
+  recipients: Array<{ email: string; data: Record<string, unknown> }>,
+  emailGenerator: (data: Record<string, unknown>) => EmailOptions,
 ): Promise<{
   sent: number;
   failed: number;

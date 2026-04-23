@@ -14,7 +14,9 @@ const auditMonitoringRouter = Router();
  * Admin authentication middleware
  */
 function requireAdmin(req: Request, res: Response, next: Function): void {
-  const user = (req as any).user;
+  const user = (req as Record<string, unknown>).user as
+    | { role?: string }
+    | undefined;
 
   if (!user || user.role !== "ADMIN") {
     res.status(403).json({ error: "Unauthorized: Admin access required" });

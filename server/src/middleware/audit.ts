@@ -115,7 +115,9 @@ function extractUserInfo(req: Request): {
   userEmail?: string;
 } {
   // Assuming user info is attached to request by auth middleware
-  const user = (req as any).user;
+  const user = (req as Record<string, unknown>).user as
+    | { id?: string; email?: string }
+    | undefined;
   return {
     userId: user?.id || "ANONYMOUS",
     userEmail: user?.email,
@@ -302,9 +304,11 @@ export function auditMiddleware(
   const originalSend = res.send;
 
   // Override send to capture response
-  res.send = function (data: any) {
+  res.send = function (data: unknown) {
     // Attach audit context to request for later use
-    const auditContext = (req as any).auditContext as AuditContext | undefined;
+    const auditContext = (req as Record<string, unknown>).auditContext as
+      | AuditContext
+      | undefined;
 
     if (auditContext) {
       // Create audit entry asynchronously
@@ -324,7 +328,7 @@ export function auditMiddleware(
  * Helper function to attach audit context to request
  */
 export function setAuditContext(req: Request, context: AuditContext): void {
-  (req as any).auditContext = context;
+  (req as Record<string, unknown>).auditContext = context;
 }
 
 /**

@@ -28,7 +28,7 @@ describe("Audit Trail System", () => {
       },
       socket: {
         remoteAddress: "127.0.0.1",
-      } as any,
+      } as Record<string, unknown>,
       user: {
         id: "admin-001",
         email: "admin@example.com",
