@@ -4,12 +4,13 @@ export default defineConfig({
   test: {
     environment: "node",
     setupFiles: ["./vitest.setup.ts"],
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     coverage: {
       provider: "v8",
       include: [
         "src/features/zap/**/*.ts",
         "src/utils/errorDecoder.ts",
+        "src/hooks/useVaultOgMeta.ts",
       ],
       exclude: [
         "src/**/*.test.ts",

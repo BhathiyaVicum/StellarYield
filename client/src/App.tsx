@@ -229,6 +229,10 @@ const router = createBrowserRouter([
         element: <Vault />,
       },
       {
+        path: "/vault/:slug",
+        element: <Vault />,
+      },
+      {
         path: "/portfolio",
         element: <PortfolioPage />,
       },
