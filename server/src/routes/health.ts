@@ -38,7 +38,14 @@ router.get("/", async (_req: Request, res: Response) => {
 
   try {
     const state = await prisma.indexerState.findFirst();
-    const latestLedger = await horizon.ledgers().limit(1).order("desc").call();
+    const timeoutMs = parseInt(process.env.STELLAR_HORIZON_TIMEOUT_MS ?? "10000", 10);
+    const latestLedgerTimeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), timeoutMs)
+    );
+    const latestLedger = await Promise.race([
+      horizon.ledgers().limit(1).order("desc").call(),
+      latestLedgerTimeout,
+    ]);
     const horizonLedger = latestLedger.records[0].sequence;
     
     status.horizon = "up";

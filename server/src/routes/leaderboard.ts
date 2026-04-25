@@ -1,5 +1,7 @@
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { sendError } from "../utils/errorResponse";
+import { validatePagination } from "../middleware/validation";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -15,7 +17,7 @@ let lastCacheUpdate = 0;
  * @param page The page number for pagination.
  * @param limit The number of results per page.
  */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", validatePagination, async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 100;
@@ -53,7 +55,7 @@ router.get("/", async (req: Request, res: Response) => {
     res.json(enrichedLeaderboard);
   } catch (error) {
     console.error("Leaderboard query failed", error);
-    res.status(500).json({ error: "Failed to fetch leaderboard." });
+    sendError(res, 500, "LEADERBOARD_FAILED", "Failed to fetch leaderboard.");
   }
 });
 

@@ -60,11 +60,46 @@ describe("getZapQuote", () => {
 
     expect(q.expectedAmountOutStroops).toBe("42");
 
-    if (prevRouter !== undefined) {
-      process.env.DEX_ROUTER_CONTRACT_ID = prevRouter;
-    }
     if (prevSim !== undefined) {
       process.env.ZAP_QUOTE_SIM_SOURCE_ACCOUNT = prevSim;
     }
+  });
+
+  it("falls back if simulated router times out", async () => {
+    const prevRouter = process.env.DEX_ROUTER_CONTRACT_ID;
+    const prevSim = process.env.ZAP_QUOTE_SIM_SOURCE_ACCOUNT;
+    const prevTimeout = process.env.SOROBAN_RPC_TIMEOUT_MS;
+
+    process.env.DEX_ROUTER_CONTRACT_ID = "CRTG2XYZ";
+    process.env.ZAP_QUOTE_SIM_SOURCE_ACCOUNT = "GABC123";
+    process.env.SOROBAN_RPC_TIMEOUT_MS = "100";
+
+    const StellarSdk = require("@stellar/stellar-sdk");
+    jest.spyOn(StellarSdk.rpc.Server.prototype, "getAccount").mockResolvedValue({} as any);
+    jest.spyOn(StellarSdk.rpc.Server.prototype, "simulateTransaction").mockImplementation(() => {
+      return new Promise((resolve) => setTimeout(resolve, 300));
+    });
+
+    const q = await getZapQuote({
+      inputTokenContract: "SAME",
+      vaultTokenContract: "SAME",
+      amountInStroops: "42",
+      inputDecimals: 7,
+      vaultDecimals: 7,
+    });
+
+    expect(q.expectedAmountOutStroops).toBe("42");
+    expect(q.source).toBe("fallback_rate");
+
+    jest.restoreAllMocks();
+
+    if (prevRouter !== undefined) process.env.DEX_ROUTER_CONTRACT_ID = prevRouter;
+    else delete process.env.DEX_ROUTER_CONTRACT_ID;
+
+    if (prevSim !== undefined) process.env.ZAP_QUOTE_SIM_SOURCE_ACCOUNT = prevSim;
+    else delete process.env.ZAP_QUOTE_SIM_SOURCE_ACCOUNT;
+
+    if (prevTimeout !== undefined) process.env.SOROBAN_RPC_TIMEOUT_MS = prevTimeout;
+    else delete process.env.SOROBAN_RPC_TIMEOUT_MS;
   });
 });

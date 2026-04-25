@@ -8,6 +8,7 @@ import { context } from "./graphql/context";
 import { graphqlSchema } from "./graphql/schema";
 import { metricsMiddleware, getMetrics } from "./middleware/metrics";
 import { auditMiddleware } from "./middleware/audit";
+import { sendError } from "./utils/errorResponse";
 import yieldsRouter from "./routes/yields";
 import leaderboardRouter from "./routes/leaderboard";
 import notificationsRouter from "./routes/notifications";
@@ -97,10 +98,12 @@ export function createApp() {
     const prisma = await loadPrismaClient();
 
     if (!prisma) {
-      res.status(503).json({
-        error:
-          "Events database is unavailable until Prisma client is generated.",
-      });
+      sendError(
+        res,
+        503,
+        "DB_UNAVAILABLE",
+        "Events database is unavailable until Prisma client is generated."
+      );
       return;
     }
 
@@ -154,9 +157,12 @@ export function createApp() {
     try {
       res.json(createAuthChallenge(req.body));
     } catch (error) {
-      res.status(400).json({
-        error: error instanceof Error ? error.message : "Invalid auth request.",
-      });
+      sendError(
+        res,
+        400,
+        "INVALID_AUTH_REQUEST",
+        error instanceof Error ? error.message : "Invalid auth request."
+      );
     }
   });
 
@@ -164,12 +170,12 @@ export function createApp() {
     try {
       res.json(verifyAuthChallenge(req.body));
     } catch (error) {
-      res.status(400).json({
-        error:
-          error instanceof Error
-            ? error.message
-            : "Invalid auth verification request.",
-      });
+      sendError(
+        res,
+        400,
+        "INVALID_AUTH_VERIFICATION",
+        error instanceof Error ? error.message : "Invalid auth verification request."
+      );
     }
   });
 

@@ -48,6 +48,11 @@ npm run dev
 
 The backend runs on `http://localhost:3001`.
 
+#### Environment Variables
+
+- `STELLAR_HORIZON_TIMEOUT_MS`: Timeout for Horizon API calls in milliseconds (default: `10000`)
+- `SOROBAN_RPC_TIMEOUT_MS`: Timeout for Soroban RPC API calls in milliseconds (default: `10000`)
+
 ### Contract Verification
 
 ```bash
