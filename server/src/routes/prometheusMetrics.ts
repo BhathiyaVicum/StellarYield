@@ -11,6 +11,7 @@
  */
 
 import { Router, Request, Response } from "express";
+import rateLimit from "express-rate-limit";
 import { PrismaClient } from "@prisma/client";
 import { Horizon } from "@stellar/stellar-sdk";
 import { collectMetrics, prometheusRegistry } from "../monitoring/prometheus";
@@ -20,6 +21,20 @@ const prisma = new PrismaClient();
 const horizon = new Horizon.Server(
   process.env.STELLAR_HORIZON_URL ?? "https://horizon-testnet.stellar.org",
 );
+
+/**
+ * Rate limiter for the /metrics scrape endpoint.
+ * Prometheus scrapes every 15–60 s by default; 10 req/min is generous
+ * while still blocking brute-force token enumeration.
+ */
+const metricsRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Return 429 (not 404) so Prometheus can distinguish rate-limit from auth failure
+  message: "Too many requests",
+});
 
 function isAuthorized(req: Request): boolean {
   const token = process.env.METRICS_TOKEN;
@@ -75,7 +90,7 @@ async function gatherInfraState(): Promise<{
   return { dbUp, indexerLag, depositorCount };
 }
 
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", metricsRateLimit, async (req: Request, res: Response) => {
   if (!isAuthorized(req)) {
     res.status(404).end();
     return;
