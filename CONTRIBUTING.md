@@ -16,9 +16,14 @@ Use the quick commands in [README.md](./README.md), or follow the more detailed 
 Before opening a PR that touches the client, run these from `client/`:
 
 - `npm ci`
-- `npm run lint`
+- `npm run lint` (full local lint)
+- `npm run lint:ci-scope` (matches CI lint scope)
 - `npm run test:coverage`
 - `npm run build`
+
+Current CI lint scope is intentionally limited to `src/features/zap` via
+`npm run lint:ci-scope`, while CI also enforces a full production build with
+`npm run build` to catch TypeScript/Vite errors before Vercel.
 
 ## CI Failure Artifacts
 

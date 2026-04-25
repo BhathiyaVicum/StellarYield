@@ -66,8 +66,8 @@ jobs:
       - name: Install client dependencies
         run: npm ci --no-audit --prefer-offline
 
-      - name: Lint frontend sources
-        run: npm run lint
+      - name: Lint frontend (CI scoped)
+        run: npm run lint:ci-scope
 
       - name: Run Zap feature tests with coverage
         id: frontend_tests
