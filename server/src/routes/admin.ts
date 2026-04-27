@@ -512,7 +512,7 @@ adminRouter.post(
       });
 
       res.json({ success: true, state });
-    } catch (_error) {
+    } catch {
       res.status(500).json({ error: "Failed to freeze recommendations" });
     }
   },
@@ -544,7 +544,7 @@ adminRouter.post(
       });
 
       res.json({ success: true, state });
-    } catch (_error) {
+    } catch {
       res.status(500).json({ error: "Failed to resume recommendations" });
     }
   },
