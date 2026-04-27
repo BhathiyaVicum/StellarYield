@@ -203,6 +203,7 @@ export class StrategyHealthEngine {
 
     // Filter by reliability threshold
     return signals.filter(signal => signal.reliability >= this.config.signalReliabilityThreshold);
+  }
 
   /**
    * Get contract safety signals

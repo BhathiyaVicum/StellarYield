@@ -229,7 +229,7 @@ export class ProtocolCompatibilityEngine {
         recommendations,
         autoUpdateAvailable,
       };
-    } catch (_error) {
+    } catch {
       console.error('Failed to fetch protocol version:', { protocolName });
       return null;
     }
@@ -285,7 +285,7 @@ export class ProtocolCompatibilityEngine {
         });
       }
 
-    } catch (_error) {
+    } catch {
       issues.push({
         severity: 'medium',
         component: requirement.component,

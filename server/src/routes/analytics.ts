@@ -442,7 +442,7 @@ router.get('/dashboard', async (req, res) => {
     const { walletAddress, strategyIds, providerIds } = req.query;
     
     // Initialize results
-    const dashboardData: any = {
+    const dashboardData: Record<string, unknown> = {
       attribution: null,
       compatibility: null,
       healthScores: [],
@@ -510,7 +510,7 @@ router.get('/dashboard', async (req, res) => {
 
     // Calculate overall health summary
     if (dashboardData.healthScores.length > 0) {
-      const avgScore = dashboardData.healthScores.reduce((sum: number, score: any) => sum + score.overallScore, 0) / dashboardData.healthScores.length;
+      const avgScore = dashboardData.healthScores.reduce((sum: number, score: { overallScore: number }) => sum + score.overallScore, 0) / dashboardData.healthScores.length;
       dashboardData.summary.overallHealth = avgScore >= 80 ? 'healthy' : avgScore >= 60 ? 'degraded' : 'critical';
     }
 
