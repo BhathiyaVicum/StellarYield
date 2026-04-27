@@ -13,6 +13,19 @@ Thanks for contributing to StellarYield. This repository contains frontend, back
 
 Use the quick commands in [README.md](./README.md), or follow the more detailed [Pre-commit Formatting and Verification Guide](./docs/contributor-guide.md).
 
+Before opening a PR that touches the client, run these from `client/`:
+
+- `npm ci`
+- `npm run lint` (full local lint)
+- `npm run lint:ci-scope` (matches CI lint scope)
+- `npm run test:coverage`
+- `npm run build`
+
+Current CI lint scope is intentionally limited to `src/features/zap` via
+`npm run lint:ci-scope`, while CI also enforces a full production build with
+`npm run build` as a diagnostic step to surface TypeScript/Vite errors before
+Vercel.
+
 ## CI Failure Artifacts
 
 If CI fails on your pull request, open the failed workflow run in GitHub Actions and check the **Artifacts** section. Frontend build logs, any generated frontend build output, and contract test logs are uploaded there for short-term debugging.

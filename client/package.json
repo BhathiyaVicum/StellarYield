@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "lint:ci-scope": "eslint src/features/zap",
     "preview": "vite preview",
     "test": "node ./node_modules/vitest/vitest.mjs run",
     "test:coverage": "node ./node_modules/vitest/vitest.mjs run --coverage"

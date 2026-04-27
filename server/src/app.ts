@@ -9,6 +9,8 @@ import { graphqlSchema } from "./graphql/schema";
 import { metricsMiddleware, getMetrics } from "./middleware/metrics";
 import { auditMiddleware } from "./middleware/audit";
 import { sendError } from "./utils/errorResponse";
+import { requestContextMiddleware } from "./middleware/requestContext";
+import { errorHandler, requestLoggerMiddleware } from "./middleware/requestLogger";
 import yieldsRouter from "./routes/yields";
 import leaderboardRouter from "./routes/leaderboard";
 import notificationsRouter from "./routes/notifications";
@@ -26,6 +28,8 @@ import auditMonitoringRouter from "./routes/auditMonitoring";
 import weeklyReportsRouter from "./routes/weeklyReports";
 import prometheusMetricsRouter from "./routes/prometheusMetrics";
 import alertsRouter from "./routes/alerts";
+import openapiRouter from "./routes/openapi";
+import incidentsRouter from "./routes/incidents";
 import { createAuthChallenge, verifyAuthChallenge } from "./utils/stellarAuth";
 
 type EventsPrismaClient = {
@@ -66,6 +70,8 @@ export function createApp() {
 
   app.use(cors());
   app.use(express.json());
+  app.use(requestContextMiddleware);
+  app.use(requestLoggerMiddleware);
   app.use(metricsMiddleware);
   app.use(auditMiddleware);
   app.use(yoga.graphqlEndpoint, yoga);
@@ -93,6 +99,8 @@ export function createApp() {
   app.use("/api/audit-monitoring", auditMonitoringRouter);
   app.use("/api/weekly-reports", weeklyReportsRouter);
   app.use("/api/alerts", alertsRouter);
+  app.use("/api/incidents", incidentsRouter);
+  app.use("/api/openapi", openapiRouter);
 
   // Legacy JSON metrics (internal tooling)
   app.get("/api/metrics", getMetrics);
@@ -169,6 +177,10 @@ export function createApp() {
         "INVALID_AUTH_REQUEST",
         error instanceof Error ? error.message : "Invalid auth request."
       );
+      res.status(400).json({
+        error: error instanceof Error ? error.message : "Invalid auth request.",
+        requestId: (req as unknown as { requestId?: string }).requestId,
+      });
     }
   });
 
@@ -182,8 +194,16 @@ export function createApp() {
         "INVALID_AUTH_VERIFICATION",
         error instanceof Error ? error.message : "Invalid auth verification request."
       );
+      res.status(400).json({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Invalid auth verification request.",
+        requestId: (req as unknown as { requestId?: string }).requestId,
+      });
     }
   });
 
+  app.use(errorHandler);
   return app;
 }

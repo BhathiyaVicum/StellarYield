@@ -20,10 +20,19 @@ describe("yield normalization utilities", () => {
     expect(normalized).toEqual({
       protocolName: "Blend",
       apy: 6.75,
+      rewardApy: 0,
+      totalApy: 6.75,
+      rewards: [],
       tvl: 12_500_000.57,
       riskScore: expect.any(Number),
       source: "stellar://blend",
       fetchedAt: "2026-03-25T10:00:00.000Z",
+      attribution: {
+        baseYield: expect.any(Number),
+        incentives: expect.any(Number),
+        compounding: expect.any(Number),
+        tacticalRotation: expect.any(Number),
+      },
     });
   });
 

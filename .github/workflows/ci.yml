@@ -12,6 +12,22 @@ jobs:
     defaults:
       run:
         working-directory: server
+    env:
+      DATABASE_URL: "postgresql://test:test@localhost:5432/stellaryield_test"
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: stellaryield_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -36,11 +52,17 @@ jobs:
       - name: Lint backend
         run: npm run lint
 
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Push Prisma schema
+        run: npx prisma db push
+
       - name: Run backend tests
         run: npm test
 
   frontend:
-    name: Frontend (Zap) Checks
+    name: Frontend Checks
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -66,8 +88,8 @@ jobs:
       - name: Install client dependencies
         run: npm ci --no-audit --prefer-offline
 
-      - name: Lint Zap feature sources
-        run: npx eslint src/features/zap
+      - name: Lint frontend (CI scoped)
+        run: npm run lint:ci-scope
 
       - name: Run Zap feature tests with coverage
         id: frontend_tests
@@ -97,7 +119,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Fail frontend job if Zap tests failed
+      - name: Fail frontend job if tests failed
         if: steps.frontend_tests.outcome == 'failure'
         run: exit 1
 
