@@ -77,18 +77,26 @@ async function checkIndexer(
   lag?: number;
 }> {
   try {
-    const state = await withTimeout(
-      prisma.indexerState.findFirst(),
-      HEALTH_TIMEOUT_MS,
+    const state = await prisma.indexerState.findFirst();
+    const timeoutMs = parseInt(process.env.STELLAR_HORIZON_TIMEOUT_MS ?? "10000", 10);
+    const latestLedgerTimeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), timeoutMs)
     );
-    const syncedLedger = state?.lastLedger ?? 0;
-    if (!latestLedger) return { status: "warning", syncedLedger };
-    const lag = latestLedger - syncedLedger;
-    return {
-      status: lag < INDEXER_LAG_WARN ? "up" : "warning",
-      syncedLedger,
-      lag,
-    };
+    const latestLedger = await Promise.race([
+      horizon.ledgers().limit(1).order("desc").call(),
+      latestLedgerTimeout,
+    ]);
+    const horizonLedger = latestLedger.records[0].sequence;
+    
+    status.horizon = "up";
+    status.latestLedger = horizonLedger;
+    status.syncedLedger = state?.lastLedger || 0;
+
+    if (horizonLedger - (state?.lastLedger || 0) < 50) {
+      status.indexer = "up";
+    } else {
+      status.indexer = "warning";
+    }
   } catch {
     return { status: "down" };
   }

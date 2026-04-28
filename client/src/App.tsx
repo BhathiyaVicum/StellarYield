@@ -22,8 +22,11 @@ import ReferralDashboard from "./features/referrals/ReferralDashboard";
 import VestingDashboard from "./pages/vesting/VestingDashboard";
 import TransparencyDashboard from "./pages/transparency/TransparencyDashboard";
 import RiskChronology from "./pages/transparency/RiskChronology";
+import StressTestDashboard from "./pages/StressTestDashboard";
 import YieldForGood from "./features/donations/YieldForGood";
 import YieldCalculator from "./components/calculator/YieldCalculator";
+import StrategyLeaderboard from "./pages/leaderboard/StrategyLeaderboard";
+import TreasurySimulation from "./pages/treasury/TreasurySimulation";
 import { useWallet } from "./context/useWallet";
 import { useState } from "react";
 import {
@@ -45,6 +48,9 @@ import {
   Settings,
   Bell,
   Calculator,
+  TrendingUp,
+  AlertTriangle,
+  Vault as VaultIcon,
 } from "lucide-react";
 import "./index.css";
 import SettingsModal from "./features/settings/SettingsModal";
@@ -112,10 +118,22 @@ const RootLayout = () => {
             <BrainCircuit size={18} /> AI Advisor
           </Link>
           <Link
+            to="/stress"
+            className="hover:text-white transition-colors flex items-center gap-2"
+          >
+            <AlertTriangle size={18} /> Stress Test
+          </Link>
+          <Link
             to="/vault"
             className="hover:text-white transition-colors flex items-center gap-2"
           >
             <Landmark size={18} /> Vaults
+          </Link>
+          <Link
+            to="/strategy"
+            className="hover:text-white transition-colors flex items-center gap-2"
+          >
+            <Zap size={18} /> Strategies
           </Link>
           {isConnected && (
             <Link
@@ -153,6 +171,20 @@ const RootLayout = () => {
           >
             <Trophy size={18} /> Leaderboard
           </Link>
+          <Link
+            to="/strategy-leaderboard"
+            className="hover:text-white transition-colors flex items-center gap-2"
+          >
+            <TrendingUp size={18} /> RAY Leaderboard
+          </Link>
+          {isConnected && (
+            <Link
+              to="/treasury"
+              className="hover:text-white transition-colors flex items-center gap-2"
+            >
+              <VaultIcon size={18} /> Treasury
+            </Link>
+          )}
           <Link
             to="/vesting"
             className="hover:text-white transition-colors flex items-center gap-2"
@@ -266,12 +298,20 @@ const router = createBrowserRouter([
         element: <AIAdvisor />,
       },
       {
+        path: "/stress",
+        element: <StressTestDashboard />,
+      },
+      {
         path: "/vault",
         element: <Vault />,
       },
       {
         path: "/vault/:slug",
         element: <Vault />,
+      },
+      {
+        path: "/strategy",
+        element: <StrategyComparison />,
       },
       {
         path: "/portfolio",
@@ -324,6 +364,14 @@ const router = createBrowserRouter([
       {
         path: "/yield-for-good",
         element: <YieldForGood />,
+      },
+      {
+        path: "/strategy-leaderboard",
+        element: <StrategyLeaderboard />,
+      },
+      {
+        path: "/treasury",
+        element: <TreasurySimulation />,
       },
     ],
   },
