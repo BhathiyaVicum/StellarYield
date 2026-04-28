@@ -93,8 +93,8 @@ export function computePressureMetrics(
   const all = _events.get(vaultId) ?? [];
   const inWindow = all.filter((e) => e.timestamp >= cutoff);
 
-  let totalInflow = 0n;
-  let totalOutflow = 0n;
+  let totalInflow = BigInt(0);
+  let totalOutflow = BigInt(0);
 
   for (const e of inWindow) {
     if (e.direction === "inflow") totalInflow += e.amount;
