@@ -1,4 +1,4 @@
-import { PROTOCOLS } from "../config/protocols";
+import { PROTOCOLS as _PROTOCOLS } from "../config/protocols";
 
 export interface CorrelationMatrix {
   items: string[];
@@ -81,7 +81,6 @@ export class CorrelationService {
     const n = items.length;
     const matrix = Array.from({ length: n }, () => new Array(n).fill(0));
     const warnings: string[] = [];
-    const highCorrelationPairs = new Set<string>();
 
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {

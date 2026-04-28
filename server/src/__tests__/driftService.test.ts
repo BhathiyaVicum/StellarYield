@@ -28,7 +28,13 @@ jest.mock("@prisma/client", () => {
   };
 });
 
-const prismaMock = new PrismaClient() as any;
+const prismaMock = {
+  driftEvent: {
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+  },
+};
 const mockDriftEventFindFirst = prismaMock.driftEvent.findFirst;
 const mockDriftEventCreate = prismaMock.driftEvent.create;
 const mockDriftEventUpdate = prismaMock.driftEvent.update;

@@ -9,8 +9,8 @@
 
 import NodeCache from "node-cache";
 import { freezeService } from "./freezeService";
-import { strategyHealthEngine, StrategyHealthScore } from "./strategyHealthService";
-import { yieldReliabilityEngine, DataSourceReliability } from "./yieldReliabilityService";
+import { strategyHealthEngine as _strategyHealthEngine, StrategyHealthScore as _StrategyHealthScore } from "./strategyHealthService";
+import { yieldReliabilityEngine as _yieldReliabilityEngine, DataSourceReliability as _DataSourceReliability } from "./yieldReliabilityService";
 
 // ── Types ───────────────────────────────────────────────────────────────
 
