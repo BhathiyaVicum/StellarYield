@@ -31,10 +31,15 @@ export interface RawProtocolYield {
 }
 
 export interface NormalizedYield {
+  protocol: string;
+  asset: string;
+  risk: "Low" | "Medium" | "High";
   protocolName: string;
   apy: number;
   rewardApy: number;
   totalApy: number;
+  netApy: number;
+  feeDragApy: number;
   tvl: number;
   riskScore: number;
   source: string;
@@ -44,6 +49,34 @@ export interface NormalizedYield {
   managementFeeBps: number;
   performanceFeeBps: number;
   capitalEfficiencyPct: number;
+  netYieldAssumptions: {
+    protocolFeeBps: number;
+    vaultFeeBps: number;
+    rebalanceCostBps: number;
+    slippageBps: number;
+  };
+  netYieldSensitivity: Array<{
+    environment: "low" | "medium" | "high";
+    assumptions: {
+      protocolFeeBps: number;
+      vaultFeeBps: number;
+      rebalanceCostBps: number;
+      slippageBps: number;
+    };
+    netApy: number;
+    feeDragApy: number;
+  }>;
+  capitalEfficiency: {
+    score: number;
+    grade: "A" | "B" | "C" | "D";
+    components: {
+      utilization: number;
+      feeDrag: number;
+      rotationCost: number;
+      liquidityDepth: number;
+    };
+    hasMissingInputs: boolean;
+  };
   rewards?: {
     symbol: string;
     apy: number;
