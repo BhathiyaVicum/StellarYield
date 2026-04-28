@@ -60,11 +60,11 @@ function forecastFeeChange(
 
   return {
     delta: {
-      yieldDeltaPct: Math.round(yieldImpactPct * 10000) / 10000,
+      yieldDeltaPct: Math.round(yieldImpactPct * 10000) / 10000 || 0,
       exposureDeltaPct: 0,
-      feeRevenueDeltaUsd: Math.round(feeRevenueDeltaUsd * 100) / 100,
+      feeRevenueDeltaUsd: Math.round(feeRevenueDeltaUsd * 100) / 100 || 0,
       projectedYieldPct:
-        Math.round((baseline.yieldPct + yieldImpactPct) * 10000) / 10000,
+        Math.round((baseline.yieldPct + yieldImpactPct) * 10000) / 10000 || 0,
       projectedExposurePct: baseline.exposurePct,
       projectedFeeRatePct: clampedFee,
     },
