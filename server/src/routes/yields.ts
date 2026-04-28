@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { getYieldData } from "../services/yieldService";
 import { sendError } from "../utils/errorResponse";
 import {
   CURRENT_YIELDS_TTL_SECONDS,

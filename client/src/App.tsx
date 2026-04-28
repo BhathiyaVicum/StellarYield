@@ -153,6 +153,20 @@ const RootLayout = () => {
           )}
           {isConnected && (
             <Link
+              to="/planner"
+              className="hover:text-white transition-colors flex items-center gap-2"
+            >
+              <Target size={18} /> Goal Planner
+            </Link>
+          )}
+          <Link
+            to="/fragmentation"
+            className="hover:text-white transition-colors flex items-center gap-2"
+          >
+            <Network size={18} /> Fragmentation
+          </Link>
+          {isConnected && (
+            <Link
               to="/governance"
               className="hover:text-white transition-colors flex items-center gap-2"
             >
@@ -320,6 +334,14 @@ const router = createBrowserRouter([
       {
         path: "/calculator",
         element: <YieldCalculator />,
+      },
+      {
+        path: "/planner",
+        element: <GoalPlannerPage />,
+      },
+      {
+        path: "/fragmentation",
+        element: <FragmentationDashboard />,
       },
       {
         path: "/governance",

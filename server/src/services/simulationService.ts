@@ -33,7 +33,7 @@ export interface SimulationResult {
 }
 
 export function simulateDeposit(params: SimulationParams): SimulationResult {
-  const { amount, strategyId, token } = params;
+  const { amount, strategyId, token: _token } = params;
 
   // We explicitly mark this as simulation-only
   const result: SimulationResult = {

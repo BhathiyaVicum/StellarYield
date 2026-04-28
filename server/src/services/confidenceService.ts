@@ -141,3 +141,118 @@ export function computeConfidenceScore(
     caveats: buildCaveats(f),
   };
 }
+
+// ── Allocation Confidence Bands (#388) ─────────────────────────────────────
+
+export interface AllocationBand {
+  /** Asset or strategy identifier */
+  assetId: string;
+  /** Recommended allocation percentage (e.g., 25.0 = 25%) */
+  recommendedAllocation: number;
+  /** Lower bound of confidence band */
+  lowerBound: number;
+  /** Upper bound of confidence band */
+  upperBound: number;
+  /** Band width (upper - lower) */
+  bandWidth: number;
+  /** Confidence score underlying this band */
+  confidenceScore: number;
+  /** Volatility input used for band calculation */
+  volatility: number;
+  /** Disclaimer that bands don't guarantee execution or outcomes */
+  disclaimer: string;
+}
+
+export interface AllocationConfidenceResult {
+  bands: AllocationBand[];
+  /** Total portfolio allocation */
+  totalAllocation: number;
+  /** Overall portfolio confidence */
+  portfolioConfidence: number;
+  /** Timestamp when calculated */
+  calculatedAt: string;
+  /** Interpretation guide for users */
+  interpretation: string;
+}
+
+const ALLOCATION_BAND_DISCLAIMER = "Confidence bands represent estimation uncertainty, not guaranteed execution ranges or guaranteed outcomes. Actual allocations may vary based on market conditions.";
+
+const ALLOCATION_BAND_INTERPRETATION = "Wider bands indicate higher uncertainty in the recommendation. Narrow bands suggest higher confidence. Bands are calculated using confidence scores and asset volatility. Always review caveats before making allocation decisions.";
+
+/**
+ * Calculate confidence band width based on confidence and volatility
+ */
+export function calculateBandWidth(
+  confidenceScore: number,
+  volatility: number,
+  baseWidth: number = 5.0,
+): number {
+  // Band widens with lower confidence and higher volatility
+  const confidenceFactor = 1 - confidenceScore; // 0 = high confidence, 1 = low
+  const volatilityFactor = Math.min(volatility * 2, 1.0); // Cap at 1.0
+  
+  const width = baseWidth * (1 + confidenceFactor * 2 + volatilityFactor);
+  return Math.round(width * 100) / 100;
+}
+
+/**
+ * Compute allocation confidence bands for a set of recommendations
+ */
+export function computeAllocationBands(
+  allocations: Array<{
+    assetId: string;
+    recommendedAllocation: number;
+    confidenceScore: number;
+    volatility: number;
+  }>,
+): AllocationConfidenceResult {
+  const bands: AllocationBand[] = allocations.map((alloc) => {
+    const bandWidth = calculateBandWidth(alloc.confidenceScore, alloc.volatility);
+    const halfWidth = bandWidth / 2;
+    
+    const lowerBound = Math.max(0, alloc.recommendedAllocation - halfWidth);
+    const upperBound = Math.min(100, alloc.recommendedAllocation + halfWidth);
+    
+    return {
+      assetId: alloc.assetId,
+      recommendedAllocation: alloc.recommendedAllocation,
+      lowerBound: Math.round(lowerBound * 100) / 100,
+      upperBound: Math.round(upperBound * 100) / 100,
+      bandWidth: Math.round(bandWidth * 100) / 100,
+      confidenceScore: alloc.confidenceScore,
+      volatility: alloc.volatility,
+      disclaimer: ALLOCATION_BAND_DISCLAIMER,
+    };
+  });
+  
+  const totalAllocation = bands.reduce((sum, band) => sum + band.recommendedAllocation, 0);
+  const portfolioConfidence = bands.length > 0
+    ? bands.reduce((sum, band) => sum + band.confidenceScore, 0) / bands.length
+    : 0;
+  
+  return {
+    bands,
+    totalAllocation: Math.round(totalAllocation * 100) / 100,
+    portfolioConfidence: Math.round(portfolioConfidence * 1000) / 1000,
+    calculatedAt: new Date().toISOString(),
+    interpretation: ALLOCATION_BAND_INTERPRETATION,
+  };
+}
+
+/**
+ * Get color for confidence band based on confidence level
+ */
+export function getBandColor(confidenceScore: number): string {
+  if (confidenceScore >= 0.85) return "green";
+  if (confidenceScore >= 0.65) return "lightgreen";
+  if (confidenceScore >= 0.45) return "orange";
+  if (confidenceScore >= 0.25) return "red";
+  return "darkred";
+}
+
+/**
+ * Format allocation band for display
+ */
+export function formatAllocationBand(band: AllocationBand): string {
+  return `${band.recommendedAllocation.toFixed(1)}% (${band.lowerBound.toFixed(1)}% - ${band.upperBound.toFixed(1)}%)`;
+}

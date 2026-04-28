@@ -10,7 +10,7 @@ const HORIZON_URL =
 const SOROBAN_RPC_URL =
   process.env.SOROBAN_RPC_URL ?? "https://soroban-testnet.stellar.org";
 const HEALTH_TIMEOUT_MS = Number(process.env.HEALTH_CHECK_TIMEOUT_MS ?? "5000");
-const INDEXER_LAG_WARN = Number(process.env.INDEXER_LAG_WARN_LEDGERS ?? "50");
+const _INDEXER_LAG_WARN_THRESHOLD = Number(process.env.INDEXER_LAG_WARN_LEDGERS ?? "50");
 
 type ComponentStatus = "up" | "down" | "warning";
 
@@ -70,7 +70,7 @@ async function checkSorobanRpc(): Promise<ComponentStatus> {
 }
 
 async function checkIndexer(
-  latestLedger?: number,
+  _latestLedger?: number,
 ): Promise<{
   status: ComponentStatus;
   syncedLedger?: number;
@@ -78,24 +78,13 @@ async function checkIndexer(
 }> {
   try {
     const state = await prisma.indexerState.findFirst();
-    const timeoutMs = parseInt(process.env.STELLAR_HORIZON_TIMEOUT_MS ?? "10000", 10);
-    const latestLedgerTimeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Timeout")), timeoutMs)
-    );
-    const latestLedger = await Promise.race([
-      horizon.ledgers().limit(1).order("desc").call(),
-      latestLedgerTimeout,
-    ]);
-    const horizonLedger = latestLedger.records[0].sequence;
-    
-    status.horizon = "up";
-    status.latestLedger = horizonLedger;
-    status.syncedLedger = state?.lastLedger || 0;
+    const syncedLedger = state?.lastLedger ?? 0;
+    const lag = _latestLedger ? _latestLedger - syncedLedger : undefined;
 
-    if (horizonLedger - (state?.lastLedger || 0) < 50) {
-      status.indexer = "up";
+    if (!lag || lag < 50) {
+      return { status: "up", syncedLedger, lag };
     } else {
-      status.indexer = "warning";
+      return { status: "warning", syncedLedger, lag };
     }
   } catch {
     return { status: "down" };
