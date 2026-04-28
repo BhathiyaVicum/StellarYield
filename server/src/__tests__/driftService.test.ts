@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import { DriftService } from "../services/driftService";
 import { dispatchDriftAlert } from "../services/alertsService";
 
