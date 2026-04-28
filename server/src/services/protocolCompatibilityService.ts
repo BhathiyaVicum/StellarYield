@@ -238,57 +238,57 @@ export class ProtocolCompatibilityEngine {
   /**
    * Check a specific compatibility requirement
    */
-  private async checkRequirement(
-    protocolName: string,
-    requirement: CompatibilityRequirement,
-    currentVersion: ProtocolVersion,
+  private async checkComponentCompatibility(
+    componentName: string,
+    requirements: CompatibilityRequirement,
+    _component: string,
   ): Promise<CompatibilityIssue[]> {
     const issues: CompatibilityIssue[] = [];
 
     try {
       // Version compatibility check
-      const versionCheck = this.checkVersionCompatibility(requirement, currentVersion);
+      const versionCheck = this.checkVersionCompatibility(requirements, currentVersion);
       if (!versionCheck.compatible) {
         issues.push({
           severity: versionCheck.isBreaking ? 'critical' : 'high',
-          component: requirement.component,
+          component: requirements.component,
           issue: versionCheck.reason,
-          impact: `Component ${requirement.component} may not function correctly`,
-          recommendation: `Update ${requirement.component} to compatible version`,
-          affectedStrategies: await this.getAffectedStrategies(protocolName, requirement.component),
+          impact: `Component ${requirements.component} may not function correctly`,
+          recommendation: `Update ${requirements.component} to compatible version`,
+          affectedStrategies: await this.getAffectedStrategies(protocolName, requirements.component),
         });
       }
 
       // Critical features check
-      const featuresCheck = await this.checkCriticalFeatures(protocolName, requirement, currentVersion);
+      const featuresCheck = await this.checkCriticalFeatures(protocolName, requirements, currentVersion);
       if (!featuresCheck.available) {
         issues.push({
           severity: 'critical',
-          component: requirement.component,
+          component: requirements.component,
           issue: 'Critical features unavailable',
           impact: featuresCheck.missingFeatures.join(', ') + ' are not available',
           recommendation: 'Upgrade protocol or use alternative implementation',
-          affectedStrategies: await this.getAffectedStrategies(protocolName, requirement.component),
+          affectedStrategies: await this.getAffectedStrategies(protocolName, requirements.component),
         });
       }
 
       // Breaking changes check
-      const breakingChangesCheck = await this.checkBreakingChanges(protocolName, currentVersion, requirement);
+      const breakingChangesCheck = await this.checkBreakingChanges(protocolName, _currentVersion, requirements);
       if (breakingChangesCheck.hasBreakingChanges) {
         issues.push({
           severity: breakingChangesCheck.affectsCriticalPath ? 'critical' : 'high',
-          component: requirement.component,
+          component: requirements.component,
           issue: 'Breaking changes detected',
           impact: breakingChangesCheck.changes.join(', '),
           recommendation: 'Review and update integration code',
-          affectedStrategies: await this.getAffectedStrategies(protocolName, requirement.component),
+          affectedStrategies: await this.getAffectedStrategies(protocolName, requirements.component),
         });
       }
 
     } catch {
       issues.push({
         severity: 'medium',
-        component: requirement.component,
+        component: requirements.component,
         issue: 'Compatibility check failed',
         impact: 'Unable to verify component compatibility',
         recommendation: 'Manual verification required',
@@ -350,7 +350,7 @@ export class ProtocolCompatibilityEngine {
   private async checkCriticalFeatures(
     protocolName: string,
     requirement: CompatibilityRequirement,
-    currentVersion: ProtocolVersion,
+    _currentVersion: ProtocolVersion,
   ): Promise<{ available: boolean; missingFeatures: string[] }> {
     // Mock implementation - in reality, this would test the actual protocol
     const mockAvailableFeatures = ['deposit', 'withdraw', 'get_apy', 'swap_exact_tokens'];
@@ -369,7 +369,7 @@ export class ProtocolCompatibilityEngine {
    */
   private async checkBreakingChanges(
     protocolName: string,
-    currentVersion: string,
+    _currentVersion: string,
     requirement: CompatibilityRequirement,
   ): Promise<{ hasBreakingChanges: boolean; affectsCriticalPath: boolean; changes: string[] }> {
     // Mock implementation - in reality, this would analyze changelogs or contract diffs
@@ -386,7 +386,7 @@ export class ProtocolCompatibilityEngine {
   /**
    * Get strategies affected by a component
    */
-  private async getAffectedStrategies(protocolName: string, component: string): Promise<string[]> {
+  private async getAffectedStrategies(protocolName: string, _component: string): Promise<string[]> {
     // Mock implementation - would query strategy registry
     return [
       `${protocolName}_yield_strategy`,

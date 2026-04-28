@@ -411,7 +411,7 @@ export class StrategyHealthEngine {
   /**
    * Check suppression status
    */
-  private checkSuppressionStatus(strategyId: string): string | undefined {
+  private checkSuppressionStatus(_strategyId: string): string | undefined {
     // Mock implementation - would check suppression database
     return undefined;
   }

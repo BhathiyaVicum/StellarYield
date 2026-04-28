@@ -176,7 +176,7 @@ export class YieldReliabilityEngine {
   /**
    * Collect reliability signals from monitoring systems
    */
-  private async collectReliabilitySignals(providerId: string, dataSource: string): Promise<ReliabilitySignals> {
+  private async collectReliabilitySignals(_providerId: string, _dataSource: string): Promise<ReliabilitySignals> {
     // Mock implementation - would query monitoring systems
     return {
       lastSuccessfulFetch: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
@@ -196,8 +196,8 @@ export class YieldReliabilityEngine {
    * Calculate reliability metrics from signals
    */
   private async calculateReliabilityMetrics(
-    providerId: string,
-    dataSource: string,
+    _providerId: string,
+    _dataSource: string,
     signals: ReliabilitySignals,
   ): Promise<DataSourceMetrics> {
     const metrics = this.getDefaultMetrics();
@@ -312,7 +312,7 @@ export class YieldReliabilityEngine {
   private generateReliabilityRecommendations(
     status: 'high' | 'medium' | 'low' | 'unreliable',
     metrics: DataSourceMetrics,
-    signals: ReliabilitySignals,
+    _signals: ReliabilitySignals,
   ): string[] {
     const recommendations: string[] = [];
 
