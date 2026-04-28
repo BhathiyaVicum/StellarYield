@@ -33,6 +33,7 @@ import strategiesRouter from "./routes/strategies";
 import treasuryRouter from "./routes/treasury";
 import governanceRouter from "./routes/governance";
 import presetsRouter from "./routes/presets";
+import analyticsRouter from "./routes/analytics";
 import { createAuthChallenge, verifyAuthChallenge } from "./utils/stellarAuth";
 import {
   getRecommendationTimeline,
@@ -113,6 +114,7 @@ export function createApp() {
   app.use("/api/treasury", treasuryRouter);
   app.use("/api/governance", governanceRouter);
   app.use("/api/presets", presetsRouter);
+  app.use("/api/analytics", analyticsRouter);
 
   // Legacy JSON metrics (internal tooling)
   app.get("/api/metrics", getMetrics);
