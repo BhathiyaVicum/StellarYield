@@ -17,6 +17,7 @@ import {
   Info
 } from 'lucide-react';
 import { apiUrl } from '../../lib/api';
+import { LiquidityBufferPanel } from './LiquidityBufferPanel';
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -636,6 +637,25 @@ export default function ApyDashboard() {
           <p className="text-gray-600 text-sm mt-1">Try adjusting your search or filters</p>
         </div>
       )}
+
+      <LiquidityBufferPanel
+        recommendations={[
+          {
+            strategyId: "Blend-USDC",
+            stressLevel: "low",
+            recommendedBufferPct: 0.12,
+            recommendedBufferUsd: 180_000,
+            rationale: [],
+          },
+          {
+            strategyId: "Soroswap-XLM-USDC",
+            stressLevel: "medium",
+            recommendedBufferPct: 0.21,
+            recommendedBufferUsd: 310_000,
+            rationale: [],
+          },
+        ]}
+      />
     </div>
   );
 }
